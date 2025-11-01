@@ -1,0 +1,540 @@
+/* ==================== MODERN FONTS ==================== */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:wght@700&display=swap');
+
+:root {
+    --bg-text-shadow: 0 2px 4px rgb(13 0 77 / 8%), 0 3px 6px rgb(13 0 77 / 8%), 0 8px 16px rgb(13 0 77 / 8%);
+    --bg-box-shadow: 0px 0px 20px 6px rgba(26, 30, 164, 0.31);
+    
+    /* Modern Color Palette */
+    --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    --secondary-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    --glass-bg: rgba(255, 255, 255, 0.95);
+    --glass-border: rgba(255, 255, 255, 0.18);
+    --input-bg: rgba(255, 255, 255, 0.9);
+    --shadow-soft: 0 8px 32px rgba(31, 38, 135, 0.15);
+    --shadow-hover: 0 12px 40px rgba(31, 38, 135, 0.25);
+}
+*::-webkit-scrollbar{
+    width: .4rem;
+}
+*::-webkit-scrollbar-track{
+    background: rgb(6, 6, 44);
+}
+*::-webkit-scrollbar-thumb{
+    background: #0040ff;
+}
+
+body {
+    background-color: #ffff;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    box-sizing: border-box;
+}
+
+i{
+    font-size: 20px;
+}
+
+.searchsection{
+    height: 80px;
+    width: 100%;
+    display: flex;
+    justify-content: space-evenly;
+    align-items: center;
+    background-color:  #0a0d2d;
+    position: fixed;
+    z-index: 500;
+}
+
+#search_bar{
+    height: 40px;
+    width: 80%;
+    border: none;
+    background-color: rgba(195, 198, 233, 0.714);
+    padding-left: 20px;
+    border-radius: 30px;
+}
+#adduser{
+    /* color: white; */
+    height: 40px;
+    background-color: rgb(0, 59, 254);
+    border: none;
+    border-radius: 30px;
+    padding: 0 50px;
+}
+#adduser:hover{
+    background-color: rgba(0, 17, 255, 0.733);
+}
+
+.exportexcel{
+    height: 40px;
+    width: 40px;
+    background-color: rgb(47, 255, 47);
+    border: none;
+    border-radius: 50%;
+    /* padding: 0 40px; */
+}
+
+/* ==================== BOOKING MODAL (MODERN REDESIGN) ==================== */
+
+#guestdetailpanel{
+    position: fixed;
+    z-index: 10000;
+    height: 100%;
+    width: 100%;
+    display: none;
+    justify-content: center;
+    align-items: center;
+    background: linear-gradient(135deg, rgba(102, 126, 234, 0.9) 0%, rgba(118, 75, 162, 0.9) 100%);
+    backdrop-filter: blur(10px);
+    padding: 20px;
+    overflow-y: auto;
+}
+
+#guestdetailpanel .guestdetailpanelform{
+    width: 95%;
+    max-width: 980px;
+    background: var(--glass-bg);
+    border-radius: 20px;
+    box-shadow: var(--shadow-soft);
+    border: 1px solid var(--glass-border);
+    backdrop-filter: blur(20px);
+    position: relative;
+    animation: modalSlideIn 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    margin: auto;
+    overflow: hidden;
+}
+
+a{
+    color: inherit;
+    text-decoration: none;
+}
+
+@keyframes modalSlideIn{
+    0%{
+        transform: translateY(-30px) scale(0.95);
+        opacity: 0;
+    }
+    100%{
+        transform: translateY(0) scale(1);
+        opacity: 1;
+    }
+}
+
+/* ==================== FORM HEADER ==================== */
+.guestdetailpanelform .head{
+    padding: 22px 30px;
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    background: #667eea; /* Fallback */
+    background: var(--primary-gradient);
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); /* Explicit fallback */
+    border-radius: 20px 20px 0 0;
+    min-height: 70px;
+    z-index: 1;
+    /* Override home.css .head styles */
+    margin-bottom: 0 !important;
+    font-size: inherit !important;
+    font-weight: inherit !important;
+    text-align: inherit !important;
+    animation: none !important;
+}
+
+.guestdetailpanelform .head::after {
+    display: none !important; /* Remove underline from home.css .head::after */
+}
+
+.guestdetailpanelform .head h3{
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 26px;
+    font-weight: 700;
+    color: #ffffff !important;
+    margin: 0;
+    letter-spacing: 0.5px;
+    text-align: center;
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    line-height: 1.3;
+    position: relative;
+    z-index: 2;
+    /* Override home.css .head styles */
+    -webkit-text-fill-color: #ffffff !important;
+    background: none !important;
+    -webkit-background-clip: initial !important;
+    background-clip: initial !important;
+}
+
+.guestdetailpanelform .head i{
+    position: absolute;
+    right: 30px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 28px;
+    cursor: pointer;
+    color: #ffffff !important;
+    transition: all 0.3s ease;
+    padding: 8px;
+    border-radius: 50%;
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    z-index: 3;
+    line-height: 1;
+    /* Override home.css .head styles */
+    -webkit-text-fill-color: #ffffff !important;
+    background: transparent !important;
+    -webkit-background-clip: initial !important;
+    background-clip: initial !important;
+}
+
+.guestdetailpanelform .head i:hover{
+    background: rgba(255, 255, 255, 0.2);
+    transform: translateY(-50%) rotate(90deg);
+}
+
+/* ==================== FORM BODY ==================== */
+.guestdetailpanelform .middle{
+    width: 100%;
+    min-height: auto;
+    max-height: 600px;
+    padding: 30px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 25px;
+    background: linear-gradient(to bottom, #f8f9fa 0%, #ffffff 100%);
+    overflow-y: auto;
+}
+
+/* Custom Scrollbar for middle section */
+.guestdetailpanelform .middle::-webkit-scrollbar{
+    width: 8px;
+}
+
+.guestdetailpanelform .middle::-webkit-scrollbar-track{
+    background: #f1f3f5;
+    border-radius: 10px;
+}
+
+.guestdetailpanelform .middle::-webkit-scrollbar-thumb{
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 10px;
+}
+
+.guestdetailpanelform .middle::-webkit-scrollbar-thumb:hover{
+    background: linear-gradient(135deg, #5568d3 0%, #6a408f 100%);
+}
+
+.guestdetailpanelform .middle .guestinfo,
+.guestdetailpanelform .middle .reservationinfo{
+    width: 100%;
+    background: white;
+    padding: 25px;
+    border-radius: 16px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.06);
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    display: flex;
+    flex-direction: column;
+    transition: all 0.3s ease;
+    overflow: visible;
+}
+
+.guestdetailpanelform .middle .guestinfo:hover,
+.guestdetailpanelform .middle .reservationinfo:hover{
+    box-shadow: 0 8px 30px rgba(102, 126, 234, 0.15);
+    transform: translateY(-2px);
+}
+
+.guestdetailpanelform .middle .guestinfo h4,
+.guestdetailpanelform .middle .reservationinfo h4{
+    font-size: 17px;
+    font-weight: 700;
+    color: #2c3e50;
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 2px solid;
+    border-image: var(--primary-gradient) 1;
+    letter-spacing: 0.3px;
+}
+
+.line{
+    display: none;
+}
+
+/* ==================== FORM FOOTER & BUTTON ==================== */
+.guestdetailpanelform .footer{
+    padding: 20px 30px;
+    display: flex;
+    justify-content: center;
+    background: white;
+    border-radius: 0 0 20px 20px;
+}
+
+.guestdetailpanelform .footer button{
+    background: var(--primary-gradient);
+    color: white;
+    border: none;
+    padding: 14px 50px;
+    border-radius: 50px;
+    font-size: 15px;
+    font-weight: 700;
+    font-family: 'Inter', sans-serif;
+    cursor: pointer;
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    position: relative;
+    overflow: hidden;
+}
+
+.guestdetailpanelform .footer button::before{
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+    transition: left 0.5s;
+}
+
+.guestdetailpanelform .footer button:hover::before{
+    left: 100%;
+}
+
+.guestdetailpanelform .footer button:hover{
+    transform: translateY(-3px);
+    box-shadow: 0 12px 32px rgba(102, 126, 234, 0.6);
+}
+
+.guestdetailpanelform .footer button:active{
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px rgba(102, 126, 234, 0.5);
+}
+
+/* ==================== INPUT FIELDS (MODERN DESIGN) ==================== */
+.middle input,
+.selectinput{
+    width: 100%;
+    border: 2px solid #e8ecf3;
+    background-color: #f7f9fc;
+    padding: 12px 16px;
+    margin: 8px 0;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 500;
+    color: #2c3e50;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    font-family: 'Inter', sans-serif;
+}
+
+.middle input:focus,
+.selectinput:focus{
+    outline: none;
+    border-color: #667eea;
+    background-color: white;
+    box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+    transform: translateY(-2px);
+}
+
+.middle input::placeholder{
+    color: #94a3b8;
+    font-weight: 400;
+}
+
+.middle input[readonly]{
+    background-color: #f1f3f5;
+    border-color: #e8ecf3;
+    cursor: not-allowed;
+    color: #64748b;
+}
+
+.selectinput{
+    cursor: pointer;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23667eea' d='M10.293 3.293L6 7.586 1.707 3.293A1 1 0 00.293 4.707l5 5a1 1 0 001.414 0l5-5a1 1 0 10-1.414-1.414z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 20px center;
+    padding-right: 50px;
+}
+
+.selectinput option{
+    padding: 12px;
+    font-weight: 500;
+}
+
+/* Date Section */
+.datesection{
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+    margin-top: 10px;
+}
+
+.datesection span{
+    display: flex;
+    flex-direction: column;
+}
+
+.datesection label{
+    font-size: 13px;
+    font-weight: 600;
+    color: #475569;
+    margin-bottom: 6px;
+    letter-spacing: 0.2px;
+}
+
+.datesection input{
+    margin: 0;
+    cursor: pointer;
+}
+
+/* room book table */
+.roombooktable{
+    position: absolute;
+    color: #0a0d2d;
+    margin-top: 80px;
+    width: 100%;
+    height: 100vh;
+
+    /* padding bottom to add space */
+    padding-bottom: 900px;
+}
+.roombooktable thead{
+    background-color:  #0a0d2d;
+    color: white;
+    text-align: center;
+}
+.roombooktable tbody{
+    text-align: center;
+}
+
+.action a{
+    text-decoration: none;
+}
+
+.action button{
+    display: flex;
+    flex-wrap: wrap;
+    margin: 5px;
+}
+
+/* ==================== RESPONSIVE DESIGN ==================== */
+@media screen and (max-width: 992px) {
+    .guestdetailpanelform .middle{
+        grid-template-columns: 1fr;
+        gap: 25px;
+        padding: 25px;
+    }
+    
+    .guestdetailpanelform .head h3{
+        font-size: 26px;
+    }
+    
+    .guestdetailpanelform .footer{
+        padding: 20px;
+    }
+}
+
+@media screen and (max-width: 768px) {
+    #guestdetailpanel{
+        padding: 10px;
+        align-items: flex-start;
+    }
+    
+    .guestdetailpanelform{
+        margin-top: 20px;
+        margin-bottom: 20px;
+    }
+    
+    .guestdetailpanelform .head{
+        padding: 20px 25px;
+    }
+    
+    .guestdetailpanelform .head h3{
+        font-size: 22px;
+    }
+    
+    .guestdetailpanelform .head i{
+        right: 20px;
+        font-size: 24px;
+    }
+    
+    .guestdetailpanelform .middle{
+        padding: 20px;
+    }
+    
+    .guestdetailpanelform .middle .guestinfo,
+    .guestdetailpanelform .middle .reservationinfo{
+        padding: 25px;
+    }
+    
+    .datesection{
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
+    
+    .guestdetailpanelform .footer button{
+        width: 100%;
+        padding: 16px 40px;
+        font-size: 15px;
+    }
+}
+
+/* ==================== ENHANCED INFO TEXT ==================== */
+.guestinfo p{
+    background: linear-gradient(135deg, #e3f2fd 0%, #f3e5f5 100%);
+    border-left: 3px solid #667eea;
+    padding: 10px 14px;
+    border-radius: 8px;
+    font-size: 12px;
+    line-height: 1.5;
+    color: #475569;
+    margin-bottom: 10px;
+}
+
+.guestinfo p a{
+    color: #667eea;
+    font-weight: 600;
+    text-decoration: none;
+    border-bottom: 1px solid transparent;
+    transition: border-bottom 0.3s ease;
+}
+
+.guestinfo p a:hover{
+    border-bottom-color: #667eea;
+}
+
+.guestinfo small{
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 8px 12px;
+    background: #fff3f3;
+    border-radius: 7px;
+    border-left: 3px solid #ff6b6b;
+    margin-top: -5px;
+    margin-bottom: 6px;
+    font-size: 11px;
+    line-height: 1.4;
+    animation: slideInLeft 0.3s ease;
+}
+
+@keyframes slideInLeft{
+    from{
+        opacity: 0;
+        transform: translateX(-10px);
+    }
+    to{
+        opacity: 1;
+        transform: translateX(0);
+    }
+}

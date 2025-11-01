@@ -1,0 +1,46 @@
+# PHP
+*.log
+*.cache
+*.tmp
+vendor/
+composer.phar
+composer.lock
+
+# Config files with sensitive data
+config.php
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# OS
+Thumbs.db
+desktop.ini
+
+# Temporary files
+*.bak
+*.backup
+*.old
+
+# Payment gateway sensitive files (if any)
+payment/gateways/*.php
+!payment/gateways/*.example.php
+
+# Database
+*.sql
+!bluebirdhotel.sql
+
+# Logs
+logs/
+error_log
+access_log
+
