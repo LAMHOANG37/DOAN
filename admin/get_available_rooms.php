@@ -5,7 +5,7 @@
  * Returns: JSON array of available rooms
  */
 
-include 'config.php';
+include '../config.php';
 
 header('Content-Type: application/json');
 

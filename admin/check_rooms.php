@@ -3,7 +3,7 @@
  * Script để kiểm tra dữ liệu phòng trong database
  */
 
-include 'config.php';
+include '../config.php';
 
 echo "<h2>Kiểm tra dữ liệu phòng trong database</h2>";
 
@@ -13,7 +13,7 @@ $tableExists = mysqli_query($conn, $checkTable);
 
 if (mysqli_num_rows($tableExists) == 0) {
     echo "<p style='color: red;'>❌ Bảng 'rooms' chưa tồn tại!</p>";
-    echo "<p><a href='setup_rooms_data.php'>Chạy script tạo dữ liệu</a></p>";
+    echo "<p><a href='admin/setup_rooms_data.php'>Chạy script tạo dữ liệu</a></p>";
     exit;
 }
 
@@ -101,7 +101,7 @@ foreach ($expectedRooms as $roomType => $expectedNumbers) {
 }
 
 echo "<hr>";
-echo "<p><a href='setup_rooms_data.php?recreate=1' style='color: red; font-weight: bold;'>🔧 Tạo lại dữ liệu phòng</a></p>";
+echo "<p><a href='admin/setup_rooms_data.php?recreate=1' style='color: red; font-weight: bold;'>🔧 Tạo lại dữ liệu phòng</a></p>";
 echo "<p><a href='index.php'>← Quay lại trang chủ</a></p>";
 ?>
 

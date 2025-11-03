@@ -3,21 +3,38 @@ include '../config.php';
 session_start();
 
 // Check login
-$usermail = "";
-$usermail = $_SESSION['usermail'];
-if($usermail != true){
-    header("location: index.php");
+$usermail = $_SESSION['usermail'] ?? '';
+if(empty($usermail)){
+    $_SESSION['error_message'] = 'Vui lòng đăng nhập để tiếp tục thanh toán.';
+    header("location: ../login.php");
     exit();
 }
 
 // Get payment details
-$id = $_GET['id'];
+$id = $_GET['id'] ?? '';
+
+if(empty($id) || !is_numeric($id)) {
+    $_SESSION['error_message'] = 'Thông tin thanh toán không hợp lệ.';
+    header("location: ../index.php");
+    exit();
+}
+
+$id = intval($id);
 $sql = "SELECT * FROM payment WHERE id = '$id'";
 $result = mysqli_query($conn, $sql);
+
+if(!$result) {
+    $_SESSION['error_message'] = 'Có lỗi xảy ra khi truy vấn thông tin thanh toán.';
+    header("location: ../index.php");
+    exit();
+}
+
 $row = mysqli_fetch_array($result);
 
 if(!$row) {
-    die("Payment not found!");
+    $_SESSION['error_message'] = 'Không tìm thấy thông tin thanh toán. Vui lòng thử lại hoặc liên hệ hỗ trợ.';
+    header("location: ../index.php");
+    exit();
 }
 
 $Name = $row['Name'];
@@ -35,17 +52,21 @@ $finaltotal = $row['finaltotal'];
 $noofdays = $row['noofdays'];
 
 // Calculate price per unit (VND)
+// ⚠️ Đồng bộ với giá trong process_booking.php
+// ⚠️ GIÁ TEST (Tiền Trăm) - Phù hợp cho test MoMo Sandbox
 $type_of_room = 0;
 if ($RoomType == "Phòng Cao Cấp") {
-    $type_of_room = 3000000; // 3 triệu VND
+    $type_of_room = 500000; // 500k VND (test) - Production: 3,000,000
 } else if ($RoomType == "Phòng Sang Trọng") {
-    $type_of_room = 2000000; // 2 triệu VND
+    $type_of_room = 300000; // 300k VND (test) - Production: 2,000,000
 } else if ($RoomType == "Nhà Khách") {
-    $type_of_room = 1500000; // 1.5 triệu VND
+    $type_of_room = 200000; // 200k VND (test) - Production: 1,500,000
 } else if ($RoomType == "Phòng Đơn") {
-    $type_of_room = 1000000; // 1 triệu VND
+    $type_of_room = 100000; // 100k VND (test) - Production: 1,000,000
 }
 
+// Tính giá bed (nếu Bed là empty string hoặc không có, mặc định = 0)
+$type_of_bed = 0;
 if ($Bed == "Đơn") {
     $type_of_bed = $type_of_room * 1 / 100;
 } else if ($Bed == "Đôi") {
@@ -54,18 +75,20 @@ if ($Bed == "Đơn") {
     $type_of_bed = $type_of_room * 3 / 100;
 } else if ($Bed == "Bốn") {
     $type_of_bed = $type_of_room * 4 / 100;
-} else if ($Bed == "Không") {
-    $type_of_bed = $type_of_room * 0 / 100;
+} else if ($Bed == "Không" || $Bed == "" || empty($Bed)) {
+    $type_of_bed = 0; // Không có bed charge
 }
 
+// Tính giá meal (dựa trên type_of_room thay vì type_of_bed vì đã bỏ bed)
+$type_of_meal = 0;
 if ($Meal == "Chỉ phòng") {
-    $type_of_meal = $type_of_bed * 0;
+    $type_of_meal = 0;
 } else if ($Meal == "Bữa sáng") {
-    $type_of_meal = $type_of_bed * 2;
+    $type_of_meal = $type_of_room * 0.1; // 10% giá phòng
 } else if ($Meal == "Nửa suất") {
-    $type_of_meal = $type_of_bed * 3;
+    $type_of_meal = $type_of_room * 0.2; // 20% giá phòng
 } else if ($Meal == "Toàn bộ") {
-    $type_of_meal = $type_of_bed * 4;
+    $type_of_meal = $type_of_room * 0.3; // 30% giá phòng
 }
 ?>
 

@@ -4,7 +4,7 @@
  * Tự động tạo bảng và seed data cho hệ thống quản lý phòng
  */
 
-include 'config.php';
+include '../config.php';
 
 echo "<!DOCTYPE html>
 <html lang='vi'>

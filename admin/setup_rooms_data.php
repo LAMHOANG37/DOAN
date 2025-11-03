@@ -4,7 +4,7 @@
  * Chạy một lần để seed dữ liệu phòng vào database
  */
 
-include 'config.php';
+include '../config.php';
 
 echo "<h2>Đang kiểm tra và tạo dữ liệu phòng...</h2>";
 

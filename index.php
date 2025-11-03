@@ -1,8 +1,38 @@
 <?php
 
 include 'config.php';
-include 'room_manager.php';  // Hệ thống quản lý phòng
+include 'admin/room_manager.php';  // Hệ thống quản lý phòng
+
 session_start();
+
+// Clear session khi vào trang home (trừ khi vừa đăng nhập xong hoặc đang submit form)
+// Lưu error_message và usermail trước khi clear (nếu cần)
+$error_message = $_SESSION['error_message'] ?? '';
+$saved_usermail = $_SESSION['usermail'] ?? '';
+
+// Kiểm tra nếu không phải redirect từ login.php hoặc admin/admin.php thì clear session
+$referer = $_SERVER['HTTP_REFERER'] ?? '';
+$isFromLogin = strpos($referer, 'login.php') !== false;
+$isFromAdmin = strpos($referer, 'admin/admin.php') !== false;
+$isSubmittingForm = isset($_POST['guestdetailsubmit']);
+$isFromBooking = strpos($referer, 'booking/') !== false;
+$isFromPayment = strpos($referer, 'payment/') !== false;
+
+// KHÔNG clear session nếu có error_message (để hiển thị lỗi) hoặc đang redirect từ booking/payment
+if (!$isFromLogin && !$isFromAdmin && !$isSubmittingForm && empty($error_message) && !$isFromBooking && !$isFromPayment) {
+    if (session_status() === PHP_SESSION_ACTIVE) {
+        session_unset();
+        if (isset($_COOKIE[session_name()])) {
+            setcookie(session_name(), '', time()-3600, '/');
+        }
+        session_destroy();
+        session_start();
+        // Khôi phục usermail nếu cần
+        if (!empty($saved_usermail)) {
+            $_SESSION['usermail'] = $saved_usermail;
+        }
+    }
+}
 
 // Check if user is logged in (but don't force redirect)
 $usermail = $_SESSION['usermail'] ?? '';
@@ -328,7 +358,7 @@ if($isLoggedIn) {
 
       <!-- bookbox -->
       <div id="guestdetailpanel">
-        <form action="" method="POST" class="guestdetailpanelform">
+        <form action="booking/process_booking.php" method="POST" class="guestdetailpanelform" onsubmit="enableSelectBeforeSubmit()">
             <div class="head">
                 <h3>ĐẶT PHÒNG</h3>
                 <i class="fa-solid fa-circle-xmark" onclick="closebox()"></i>
@@ -430,229 +460,6 @@ if($isLoggedIn) {
                     </div>
                 </form>
 
-        <!-- ==== room book php ====-->
-                <?php
-            if (isset($_POST['guestdetailsubmit'])) {
-                // Security: Check if user is logged in before processing
-                if(!$isLoggedIn) {
-                    echo "<script>swal({
-                        title: 'Yêu cầu đăng nhập',
-                        text: 'Vui lòng đăng nhập để đặt phòng',
-                        icon: 'error',
-                    }).then(() => {
-                        window.location.href = 'login.php';
-                    });
-                    </script>";
-                    exit;
-                }
-                
-                $Name = mysqli_real_escape_string($conn, trim($_POST['Name']));
-                $Email = mysqli_real_escape_string($conn, trim($_POST['Email']));
-                $Country = mysqli_real_escape_string($conn, trim($_POST['Country']));
-                $Phone = mysqli_real_escape_string($conn, trim($_POST['Phone']));
-                $RoomType = mysqli_real_escape_string($conn, $_POST['RoomType']);
-                $Service = mysqli_real_escape_string($conn, $_POST['Service']);
-                $cin = $_POST['cin'];
-                $cout = $_POST['cout'];
-
-                // Validation
-                if($Name == "" || $Email == "" || $Country == "" || $Phone == ""){
-                    echo "<script>swal({
-                        title: 'Thiếu thông tin cá nhân',
-                        text: 'Vui lòng điền đầy đủ thông tin khách hàng',
-                        icon: 'error',
-                    });
-                    </script>";
-                }
-                elseif($RoomType == "" || $Service == ""){
-                    echo "<script>swal({
-                        title: 'Thiếu thông tin đặt phòng',
-                        text: 'Vui lòng chọn đầy đủ thông tin phòng',
-                        icon: 'error',
-                    });
-                    </script>";
-                }
-                elseif($cin == "" || $cout == ""){
-                    echo "<script>swal({
-                        title: 'Thiếu ngày nhận/trả phòng',
-                        text: 'Vui lòng chọn ngày nhận và trả phòng',
-                        icon: 'error',
-                    });
-                    </script>";
-                }
-                elseif(strtotime($cin) < strtotime(date('Y-m-d'))){
-                    echo "<script>swal({
-                        title: 'Ngày nhận phòng không hợp lệ',
-                        text: 'Ngày nhận phòng phải từ hôm nay trở đi',
-                        icon: 'error',
-                    });
-                    </script>";
-                }
-                elseif(strtotime($cout) <= strtotime($cin)){
-                    echo "<script>swal({
-                        title: 'Ngày trả phòng không hợp lệ',
-                        text: 'Ngày trả phòng phải sau ngày nhận phòng',
-                        icon: 'error',
-                    });
-                    </script>";
-                }
-                else{
-                    // Lấy số phòng đã chọn từ form (chỉ chọn 1 phòng)
-                    $selectedRoomNumber = isset($_POST['RoomNumber']) ? intval($_POST['RoomNumber']) : 0;
-                    $numRooms = 1; // Luôn là 1 vì chỉ chọn 1 phòng
-                    
-                    if (empty($selectedRoomNumber) || $selectedRoomNumber == 0) {
-                        echo "<script>swal({
-                            title: 'Chưa chọn phòng',
-                            text: 'Vui lòng chọn phòng để đặt.',
-                            icon: 'error',
-                        });
-                        </script>";
-                    } else {
-                        // Validate: Kiểm tra phòng có thực sự trống không
-                        $roomNumber = intval($selectedRoomNumber);
-                        
-                        // Lấy thông tin phòng từ database
-                        $roomInfoSql = "SELECT id, room_type, status FROM rooms WHERE room_number = $roomNumber AND room_type = '$RoomType'";
-                        $roomInfoResult = mysqli_query($conn, $roomInfoSql);
-                        
-                        if (!$roomInfoResult || mysqli_num_rows($roomInfoResult) == 0) {
-                            echo "<script>swal({
-                                title: 'Phòng không tồn tại',
-                                text: 'Phòng đã chọn không tồn tại hoặc không thuộc loại phòng này.',
-                                icon: 'error',
-                            });
-                            </script>";
-                        } else {
-                            $roomInfo = mysqli_fetch_assoc($roomInfoResult);
-                            $roomId = $roomInfo['id'];
-                            
-                            // Kiểm tra phòng có đang được đặt trong khoảng thời gian này không
-                            $checkSql = "SELECT COUNT(*) as count FROM room_assignments 
-                                         WHERE room_id = $roomId 
-                                         AND (
-                                             (check_in <= '$cin' AND check_out > '$cin') OR
-                                             (check_in < '$cout' AND check_out >= '$cout') OR
-                                             (check_in >= '$cin' AND check_out <= '$cout')
-                                         )";
-                            $checkResult = mysqli_query($conn, $checkSql);
-                            $checkRow = mysqli_fetch_assoc($checkResult);
-                            
-                            if ($checkRow['count'] > 0) {
-                                echo "<script>swal({
-                                    title: 'Phòng không khả dụng',
-                                    text: 'Phòng đã được đặt trong khoảng thời gian này. Vui lòng chọn phòng khác.',
-                                    icon: 'error',
-                                });
-                                </script>";
-                            } else {
-                                // Phòng hợp lệ, tạo booking
-                                $roomData = [[
-                                    'id' => $roomId,
-                                    'room_number' => $roomNumber
-                                ]];
-                                
-                                // Tạo booking
-                                $sta = "Confirm";
-                                $user_id_str = $user_id ? "'$user_id'" : "NULL";
-                                // Lưu Bed = NULL vì đã bỏ, Meal = Service
-                                $sql = "INSERT INTO roombook(Name,Email,user_id,Country,Phone,RoomType,Bed,NoofRoom,Meal,cin,cout,stat,nodays) VALUES ('$Name','$Email',$user_id_str,'$Country','$Phone','$RoomType',NULL,'$numRooms','$Service','$cin','$cout','$sta',datediff('$cout','$cin'))";
-                                $result = mysqli_query($conn, $sql);
-
-                                if ($result) {
-                                    // Lấy ID booking vừa tạo
-                                    $booking_id = mysqli_insert_id($conn);
-                                    
-                                    // Gán các phòng đã chọn cho booking
-                                    $assignSuccess = assignRoomsToBooking($conn, $booking_id, $roomData, $cin, $cout);
-                                    $roomNumbers = getBookingRoomNumbers($conn, $booking_id);
-                                    
-                                    if (!$assignSuccess) {
-                                        // Nếu gán phòng thất bại, xóa booking và thông báo
-                                        $deleteSql = "DELETE FROM roombook WHERE id = $booking_id";
-                                        mysqli_query($conn, $deleteSql);
-                                        echo "<script>swal({
-                                            title: 'Có lỗi xảy ra',
-                                            text: 'Đã xảy ra lỗi khi gán phòng. Vui lòng thử lại.',
-                                            icon: 'error',
-                                        });
-                                        </script>";
-                                        // Dừng xử lý
-                                        exit;
-                                    }
-                                    
-                                    // Tính toán giá (VND)
-                                    // ⚠️ GIÁ TEST (Tiền Trăm) - Phù hợp cho test MoMo Sandbox
-                                    $type_of_room = 0;
-                                    if($RoomType=="Phòng Cao Cấp") {
-                                        $type_of_room = 500000; // 500k VND (test) - Production: 3,000,000
-                                    }
-                                    else if($RoomType=="Phòng Sang Trọng") {
-                                        $type_of_room = 300000; // 300k VND (test) - Production: 2,000,000
-                                    }
-                                    else if($RoomType=="Nhà Khách") {
-                                        $type_of_room = 200000; // 200k VND (test) - Production: 1,500,000
-                                    }
-                                    else if($RoomType=="Phòng Đơn") {
-                                        $type_of_room = 100000; // 100k VND (test) - Production: 1,000,000
-                                    }
-                                    
-                                    // Tính giá dịch vụ (bỏ Bed)
-                                    $type_of_service = 0;
-                                    if($Service=="Chỉ phòng") {
-                                        $type_of_service = 0;
-                                    }
-                                    else if($Service=="Bữa sáng") {
-                                        $type_of_service = $type_of_room * 0.1; // 10% giá phòng
-                                    }
-                                    else if($Service=="Nửa suất") {
-                                        $type_of_service = $type_of_room * 0.2; // 20% giá phòng
-                                    }
-                                    else if($Service=="Toàn bộ") {
-                                        $type_of_service = $type_of_room * 0.3; // 30% giá phòng
-                                    }
-                                    
-                                    // Lấy số ngày
-                                    $get_days = "SELECT nodays FROM roombook WHERE id = '$booking_id'";
-                                    $days_result = mysqli_query($conn, $get_days);
-                                    $days_row = mysqli_fetch_array($days_result);
-                                    $noofday = $days_row['nodays'];
-                                    
-                                    $ttot = $type_of_room * $noofday * $numRooms;
-                                    $servicetot = $type_of_service * $noofday;
-                                    $fintot = $ttot + $servicetot;
-
-                                    // Tạo payment (Bed = NULL vì đã bỏ, Meal = Service)
-                                    $psql = "INSERT INTO payment(id,Name,Email,RoomType,Bed,NoofRoom,cin,cout,noofdays,roomtotal,bedtotal,meal,mealtotal,finaltotal) VALUES ('$booking_id', '$Name', '$Email', '$RoomType', NULL, '$numRooms', '$cin', '$cout', '$noofday', '$ttot', 0, '$Service', '$servicetot', '$fintot')";
-                                    mysqli_query($conn, $psql);
-
-                                    // Chuyển đến trang thanh toán
-                                    $roomNumbersDisplay = $roomNumbers ? "Phòng: $roomNumbers. " : "";
-                                    echo "<script>
-                                        swal({
-                                            title: 'Đặt phòng thành công!',
-                                            text: '$roomNumbersDisplay Đang chuyển đến trang thanh toán...',
-                                            icon: 'success',
-                                            timer: 3000,
-                                            buttons: false,
-                                        }).then(function() {
-                                            window.location.href = 'payment/index.php?id=$booking_id';
-                                        });
-                                    </script>";
-                                } else {
-                                    echo "<script>swal({
-                                        title: 'Có lỗi xảy ra',
-                                        text: 'Không thể tạo booking. Vui lòng thử lại.',
-                                        icon: 'error',
-                                    });
-                                    </script>";
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-            ?>
           </div>
 
     </div>
@@ -791,6 +598,20 @@ if($isLoggedIn) {
 <script>
     // Check if user is logged in (from PHP)
     const isLoggedIn = <?php echo $isLoggedIn ? 'true' : 'false'; ?>;
+    
+    // Hiển thị thông báo lỗi nếu có
+    <?php if(isset($_SESSION['error_message']) && !empty($_SESSION['error_message'])): ?>
+    swal({
+        title: 'Thông báo',
+        text: '<?php echo addslashes($_SESSION['error_message']); ?>',
+        icon: 'error',
+        button: 'OK'
+    });
+    <?php 
+    // Xóa error_message sau khi hiển thị
+    unset($_SESSION['error_message']);
+    endif; 
+    ?>
 
     var bookbox = document.getElementById("guestdetailpanel");
 
@@ -811,7 +632,7 @@ if($isLoggedIn) {
           }
         }).then((willLogin) => {
           if (willLogin) {
-            window.location.href = 'index.php';
+            window.location.href = 'login.php';
           }
         });
         return;
@@ -884,7 +705,7 @@ if($isLoggedIn) {
         roomSelect.innerHTML = '<option value="">Đang tải...</option>';
         
         // Fetch available rooms
-        fetch(`get_available_rooms.php?roomType=${encodeURIComponent(roomType)}`)
+        fetch(`admin/get_available_rooms.php?roomType=${encodeURIComponent(roomType)}`)
             .then(response => response.json())
             .then(data => {
                 roomSelect.innerHTML = '';
@@ -919,6 +740,15 @@ if($isLoggedIn) {
                 roomSelect.innerHTML = '<option value="">Lỗi khi tải danh sách phòng</option>';
                 roomSelect.disabled = true;
             });
+    }
+    
+    // Enable select before form submit
+    function enableSelectBeforeSubmit() {
+        const roomSelect = document.getElementById('roomNumbersSelect');
+        if (roomSelect && roomSelect.disabled) {
+            roomSelect.disabled = false;
+        }
+        return true;
     }
     
     // ============ Smooth Scroll to Section ============
