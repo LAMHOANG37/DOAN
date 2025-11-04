@@ -41,19 +41,17 @@ $isLoggedIn = !empty($usermail);
 // Get user info if logged in
 $username = 'Khách';
 $avatar = 'default-avatar.png';
-$user_phone = '';
 $user_address = '';
 
 $user_id = null;
 if($isLoggedIn) {
-    $user_sql = "SELECT UserID, Username, avatar, phone, address FROM signup WHERE Email = '$usermail'";
+    $user_sql = "SELECT UserID, Username, avatar, address FROM signup WHERE Email = '$usermail'";
     $user_result = mysqli_query($conn, $user_sql);
     if($user_result && mysqli_num_rows($user_result) > 0) {
         $user_data = mysqli_fetch_array($user_result);
         $user_id = $user_data['UserID'] ?? null;
         $username = $user_data['Username'] ?? 'Khách';
         $avatar = $user_data['avatar'] ?? 'default-avatar.png';
-        $user_phone = $user_data['phone'] ?? '';
         $user_address = $user_data['address'] ?? '';
     }
 }
@@ -247,6 +245,17 @@ if($isLoggedIn) {
         border-top: 1px solid #e0e0e0;
       }
       
+      /* Styling cho phòng đã được đặt trong dropdown */
+      #roomNumbersSelect option:disabled {
+        color: #dc3545 !important;
+        font-style: italic;
+        background-color: #fff3cd !important;
+      }
+      
+      #roomNumbersSelect option:not(:disabled) {
+        color: #2c3e50;
+      }
+      
       .dropdown-item.logout:hover {
         background: #fee;
         color: #c0392b;
@@ -366,17 +375,12 @@ if($isLoggedIn) {
             <div class="middle">
                 <div class="guestinfo">
                     <h4>Thông Tin Khách Hàng</h4>
-                    <p>
-                        <i class="fa-solid fa-info-circle"></i> 
-                        Thông tin từ tài khoản của bạn. 
-                        <a href="./user/profile.php">Chỉnh sửa tại đây</a>
-                    </p>
                     
-                    <!-- Tên (từ tài khoản - readonly) -->
-                    <input type="text" name="Name" value="<?php echo htmlspecialchars($username); ?>" readonly>
+                    <!-- Tên -->
+                    <input type="text" name="Name" placeholder="Nhập họ tên *" value="" autocomplete="off" required>
                     
-                    <!-- Email (từ session - readonly) -->
-                    <input type="email" name="Email" value="<?php echo htmlspecialchars($usermail); ?>" readonly>
+                    <!-- Email -->
+                    <input type="email" name="Email" placeholder="Nhập email *" value="" autocomplete="off" required>
 
                     <?php
                     $countries = array("Afghanistan", "Albania", "Algeria", "American Samoa", "Andorra", "Angola", "Anguilla", "Antarctica", "Antigua and Barbuda", "Argentina", "Armenia", "Aruba", "Australia", "Austria", "Azerbaijan", "Bahamas", "Bahrain", "Bangladesh", "Barbados", "Belarus", "Belgium", "Belize", "Benin", "Bermuda", "Bhutan", "Bolivia", "Bosnia and Herzegowina", "Botswana", "Bouvet Island", "Brazil", "British Indian Ocean Territory", "Brunei Darussalam", "Bulgaria", "Burkina Faso", "Burundi", "Cambodia", "Cameroon", "Canada", "Cape Verde", "Cayman Islands", "Central African Republic", "Chad", "Chile", "China", "Christmas Island", "Cocos (Keeling) Islands", "Colombia", "Comoros", "Congo", "Congo, the Democratic Republic of the", "Cook Islands", "Costa Rica", "Cote d'Ivoire", "Croatia (Hrvatska)", "Cuba", "Cyprus", "Czech Republic", "Denmark", "Djibouti", "Dominica", "Dominican Republic", "East Timor", "Ecuador", "Egypt", "El Salvador", "Equatorial Guinea", "Eritrea", "Estonia", "Ethiopia", "Falkland Islands (Malvinas)", "Faroe Islands", "Fiji", "Finland", "France", "France Metropolitan", "French Guiana", "French Polynesia", "French Southern Territories", "Gabon", "Gambia", "Georgia", "Germany", "Ghana", "Gibraltar", "Greece", "Greenland", "Grenada", "Guadeloupe", "Guam", "Guatemala", "Guinea", "Guinea-Bissau", "Guyana", "Haiti", "Heard and Mc Donald Islands", "Holy See (Vatican City State)", "Honduras", "Hong Kong", "Hungary", "Iceland", "India", "Indonesia", "Iran (Islamic Republic of)", "Iraq", "Ireland", "Israel", "Italy", "Jamaica", "Japan", "Jordan", "Kazakhstan", "Kenya", "Kiribati", "Korea, Democratic People's Republic of", "Korea, Republic of", "Kuwait", "Kyrgyzstan", "Lao, People's Democratic Republic", "Latvia", "Lebanon", "Lesotho", "Liberia", "Libyan Arab Jamahiriya", "Liechtenstein", "Lithuania", "Luxembourg", "Macau", "Macedonia, The Former Yugoslav Republic of", "Madagascar", "Malawi", "Malaysia", "Maldives", "Mali", "Malta", "Marshall Islands", "Martinique", "Mauritania", "Mauritius", "Mayotte", "Mexico", "Micronesia, Federated States of", "Moldova, Republic of", "Monaco", "Mongolia", "Montserrat", "Morocco", "Mozambique", "Myanmar", "Namibia", "Nauru", "Nepal", "Netherlands", "Netherlands Antilles", "New Caledonia", "New Zealand", "Nicaragua", "Niger", "Nigeria", "Niue", "Norfolk Island", "Northern Mariana Islands", "Norway", "Oman", "Pakistan", "Palau", "Panama", "Papua New Guinea", "Paraguay", "Peru", "Philippines", "Pitcairn", "Poland", "Portugal", "Puerto Rico", "Qatar", "Reunion", "Romania", "Russian Federation", "Rwanda", "Saint Kitts and Nevis", "Saint Lucia", "Saint Vincent and the Grenadines", "Samoa", "San Marino", "Sao Tome and Principe", "Saudi Arabia", "Senegal", "Seychelles", "Sierra Leone", "Singapore", "Slovakia (Slovak Republic)", "Slovenia", "Solomon Islands", "Somalia", "South Africa", "South Georgia and the South Sandwich Islands", "Spain", "Sri Lanka", "St. Helena", "St. Pierre and Miquelon", "Sudan", "Suriname", "Svalbard and Jan Mayen Islands", "Swaziland", "Sweden", "Switzerland", "Syrian Arab Republic", "Taiwan, Province of China", "Tajikistan", "Tanzania, United Republic of", "Thailand", "Togo", "Tokelau", "Tonga", "Trinidad and Tobago", "Tunisia", "Turkey", "Turkmenistan", "Turks and Caicos Islands", "Tuvalu", "Uganda", "Ukraine", "United Arab Emirates", "United Kingdom", "United States", "United States Minor Outlying Islands", "Uruguay", "Uzbekistan", "Vanuatu", "Venezuela", "Vietnam", "Virgin Islands (British)", "Virgin Islands (U.S.)", "Wallis and Futuna Islands", "Western Sahara", "Yemen", "Yugoslavia", "Zambia", "Zimbabwe");
@@ -392,21 +396,6 @@ if($isLoggedIn) {
 							endforeach;
 						?>
                     </select>
-                    
-                    <!-- Số điện thoại (từ tài khoản hoặc nhập mới) -->
-                    <input type="text" name="Phone" 
-                           value="<?php echo htmlspecialchars($user_phone); ?>" 
-                           placeholder="Nhập số điện thoại *" 
-                           required>
-                    
-                    <?php if(!$user_phone): ?>
-                    <small>
-                        <i class="fa-solid fa-exclamation-triangle"></i> 
-                        Vui lòng cập nhật số điện thoại trong 
-                        <a href="./user/profile.php">tài khoản</a> 
-                        để không phải nhập lại mỗi lần.
-                    </small>
-                    <?php endif; ?>
                 </div>
 
                 <div class="line"></div>
@@ -414,12 +403,12 @@ if($isLoggedIn) {
                 <div class="reservationinfo">
                     <h4>Thông Tin Đặt Phòng</h4>
                     <!-- 1. Loại Phòng -->
-                    <select name="RoomType" id="roomTypeSelect" class="selectinput" required>
+                    <select name="RoomType" id="roomTypeSelect" class="selectinput" required onchange="calculatePrice()">
 						<option value="">Loại Phòng *</option>
-                        <option value="Phòng Cao Cấp">PHÒNG CAO CẤP</option>
-                        <option value="Phòng Sang Trọng">PHÒNG SANG TRỌNG</option>
-						<option value="Nhà Khách">NHÀ KHÁCH</option>
-						<option value="Phòng Đơn">PHÒNG ĐƠN</option>
+                        <option value="Phòng Cao Cấp">PHÒNG CAO CẤP (3,000,000 ₫/đêm)</option>
+                        <option value="Phòng Sang Trọng">PHÒNG SANG TRỌNG (2,000,000 ₫/đêm)</option>
+						<option value="Nhà Khách">NHÀ KHÁCH (1,500,000 ₫/đêm)</option>
+						<option value="Phòng Đơn">PHÒNG ĐƠN (1,000,000 ₫/đêm)</option>
                     </select>
                     
                     <!-- 2. Chọn Phòng -->
@@ -434,24 +423,58 @@ if($isLoggedIn) {
                     <input type="hidden" name="NoofRoom" id="noofRoomHidden" value="1">
                     
                     <!-- 3. Dịch Vụ -->
-                    <select name="Service" class="selectinput" required>
+                    <select name="Service" id="serviceSelect" class="selectinput" required onchange="calculatePrice()">
 						<option value="">Dịch Vụ *</option>
                         <option value="Chỉ phòng">Chỉ phòng</option>
-                        <option value="Bữa sáng">Bữa sáng</option>
-						<option value="Nửa suất">Nửa suất</option>
-						<option value="Toàn bộ">Toàn bộ</option>
+                        <option value="Bữa sáng">Bữa sáng (+10% giá phòng)</option>
+						<option value="Nửa suất">Nửa suất (+20% giá phòng)</option>
+						<option value="Toàn bộ">Toàn bộ (+30% giá phòng)</option>
 					</select>
                     
                     <!-- 4. Ngày -->
                     <div class="datesection">
                         <span>
                             <label for="cin"> Ngày Nhận Phòng *</label>
-                            <input name="cin" type="date" required min="<?php echo date('Y-m-d'); ?>">
+                            <input name="cin" id="checkinDate" type="date" required min="<?php echo date('Y-m-d'); ?>" onchange="calculatePrice()">
                         </span>
                         <span>
                             <label for="cout"> Ngày Trả Phòng *</label>
-                            <input name="cout" type="date" required min="<?php echo date('Y-m-d', strtotime('+1 day')); ?>">
+                            <input name="cout" id="checkoutDate" type="date" required min="<?php echo date('Y-m-d', strtotime('+1 day')); ?>" onchange="calculatePrice()">
                         </span>
+                    </div>
+                    
+                    <!-- 5. Hiển thị giá -->
+                    <div id="priceSummary" style="display: none; margin-top: 20px; padding: 15px; background: #f8f9fa; border-radius: 10px; border: 2px solid #667eea;">
+                        <h4 style="margin-bottom: 15px; color: #667eea; font-size: 16px;">
+                            <i class="fa-solid fa-calculator"></i> Tóm tắt giá
+                        </h4>
+                        <div style="font-size: 14px; line-height: 1.8;">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                                <span>Giá phòng/đêm:</span>
+                                <strong id="roomPricePerNight">0</strong>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                                <span>Số đêm:</span>
+                                <strong id="numberOfNights">0</strong>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                                <span>Giá phòng (tổng):</span>
+                                <strong id="totalRoomPrice" style="color: #667eea;">0 ₫</strong>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                                <span>Giá dịch vụ/ngày:</span>
+                                <strong id="servicePricePerDay">0</strong>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                                <span>Giá dịch vụ (tổng):</span>
+                                <strong id="totalServicePrice" style="color: #667eea;">0 ₫</strong>
+                            </div>
+                            <hr style="margin: 10px 0; border: 1px solid #dee2e6;">
+                            <div style="display: flex; justify-content: space-between; font-size: 18px; font-weight: bold; color: #667eea;">
+                                <span>TỔNG CỘNG:</span>
+                                <strong id="finalTotalPrice" style="font-size: 20px;">0 ₫</strong>
+                            </div>
+                        </div>
                     </div>
                     </div>
                     </div>
@@ -641,6 +664,18 @@ if($isLoggedIn) {
       // If logged in, open booking form
       bookbox.classList.add("show");
       
+      // Clear Name and Email fields to prevent auto-fill
+      const nameInput = bookbox.querySelector('input[name="Name"]');
+      const emailInput = bookbox.querySelector('input[name="Email"]');
+      if (nameInput) {
+        nameInput.value = '';
+        nameInput.setAttribute('autocomplete', 'off');
+      }
+      if (emailInput) {
+        emailInput.value = '';
+        emailInput.setAttribute('autocomplete', 'off');
+      }
+      
       // Set room type if provided
       if (roomType) {
         const roomTypeSelect = document.getElementById('roomTypeSelect');
@@ -672,6 +707,8 @@ if($isLoggedIn) {
       // Reset form
       const roomTypeSelect = document.getElementById('roomTypeSelect');
       const roomSelect = document.getElementById('roomNumbersSelect');
+      const nameInput = bookbox.querySelector('input[name="Name"]');
+      const emailInput = bookbox.querySelector('input[name="Email"]');
       
       if (roomTypeSelect) {
         roomTypeSelect.value = '';
@@ -681,6 +718,12 @@ if($isLoggedIn) {
         roomSelect.value = '';
         roomSelect.disabled = true;
       }
+      if (nameInput) {
+        nameInput.value = '';
+      }
+      if (emailInput) {
+        emailInput.value = '';
+      }
       
       document.getElementById('noofRoomHidden').value = '0';
     }
@@ -689,6 +732,8 @@ if($isLoggedIn) {
     function loadAvailableRooms() {
         const roomType = document.getElementById('roomTypeSelect').value;
         const roomSelect = document.getElementById('roomNumbersSelect');
+        const checkinDate = document.getElementById('checkinDate');
+        const checkoutDate = document.getElementById('checkoutDate');
         
         // Reset
         roomSelect.innerHTML = '';
@@ -704,8 +749,21 @@ if($isLoggedIn) {
         // Show loading
         roomSelect.innerHTML = '<option value="">Đang tải...</option>';
         
-        // Fetch available rooms
-        fetch(`admin/get_available_rooms.php?roomType=${encodeURIComponent(roomType)}`)
+        // Lấy ngày check-in và check-out nếu có
+        const checkIn = checkinDate ? checkinDate.value : '';
+        const checkOut = checkoutDate ? checkoutDate.value : '';
+        
+        // Build query string
+        let queryString = `admin/get_available_rooms.php?roomType=${encodeURIComponent(roomType)}`;
+        if (checkIn) {
+            queryString += `&checkIn=${encodeURIComponent(checkIn)}`;
+        }
+        if (checkOut) {
+            queryString += `&checkOut=${encodeURIComponent(checkOut)}`;
+        }
+        
+        // Fetch all rooms (including booked ones)
+        fetch(queryString)
             .then(response => response.json())
             .then(data => {
                 roomSelect.innerHTML = '';
@@ -720,15 +778,32 @@ if($isLoggedIn) {
                     return;
                 }
                 
+                let hasAvailableRoom = false;
+                
                 // Populate room options
                 data.rooms.forEach(room => {
                     const option = document.createElement('option');
                     option.value = room.room_number;
-                    option.textContent = `Phòng ${room.room_number}`;
+                    
+                    if (room.is_booked) {
+                        // Phòng đã được đặt - hiển thị nhưng disable
+                        option.textContent = `Phòng ${room.room_number} - Đã được đặt ❌`;
+                        option.disabled = true;
+                        option.style.color = '#dc3545';
+                        option.style.fontStyle = 'italic';
+                        option.style.backgroundColor = '#fff3cd';
+                        option.setAttribute('title', 'Phòng này đã được đặt trong khoảng thời gian bạn chọn');
+                    } else {
+                        // Phòng còn trống
+                        option.textContent = `Phòng ${room.room_number} ✓`;
+                        hasAvailableRoom = true;
+                    }
+                    
                     roomSelect.appendChild(option);
                 });
                 
-                roomSelect.disabled = false;
+                // Chỉ enable select nếu có ít nhất 1 phòng trống
+                roomSelect.disabled = !hasAvailableRoom;
                 
                 // Update count when selection changes
                 roomSelect.addEventListener('change', function() {
@@ -763,12 +838,121 @@ if($isLoggedIn) {
       }, 100);
     }
     
+    // Bảng giá phòng (Production)
+    const roomPrices = {
+        'Phòng Cao Cấp': 3000000,
+        'Phòng Sang Trọng': 2000000,
+        'Nhà Khách': 1500000,
+        'Phòng Đơn': 1000000
+    };
+    
+    // Tính toán và hiển thị giá
+    function calculatePrice() {
+        const roomTypeSelect = document.getElementById('roomTypeSelect');
+        const serviceSelect = document.getElementById('serviceSelect');
+        const checkinDate = document.getElementById('checkinDate');
+        const checkoutDate = document.getElementById('checkoutDate');
+        const priceSummary = document.getElementById('priceSummary');
+        
+        const roomType = roomTypeSelect ? roomTypeSelect.value : '';
+        const service = serviceSelect ? serviceSelect.value : '';
+        const checkin = checkinDate ? checkinDate.value : '';
+        const checkout = checkoutDate ? checkoutDate.value : '';
+        
+        // Nếu chưa đủ thông tin, ẩn phần hiển thị giá
+        if (!roomType || !service || !checkin || !checkout) {
+            if (priceSummary) {
+                priceSummary.style.display = 'none';
+            }
+            return;
+        }
+        
+        // Lấy giá phòng
+        const roomPricePerNight = roomPrices[roomType] || 0;
+        
+        // Tính số đêm
+        const checkinDateObj = new Date(checkin);
+        const checkoutDateObj = new Date(checkout);
+        const diffTime = checkoutDateObj - checkinDateObj;
+        const diffDays = Math.max(0, Math.ceil(diffTime / (1000 * 60 * 60 * 24)));
+        
+        if (diffDays <= 0) {
+            if (priceSummary) {
+                priceSummary.style.display = 'none';
+            }
+            return;
+        }
+        
+        // Tính giá dịch vụ mỗi ngày
+        let servicePricePerDay = 0;
+        if (service === 'Chỉ phòng') {
+            servicePricePerDay = 0;
+        } else if (service === 'Bữa sáng') {
+            servicePricePerDay = roomPricePerNight * 0.1; // 10%
+        } else if (service === 'Nửa suất') {
+            servicePricePerDay = roomPricePerNight * 0.2; // 20%
+        } else if (service === 'Toàn bộ') {
+            servicePricePerDay = roomPricePerNight * 0.3; // 30%
+        }
+        
+        // Tính tổng giá
+        const totalRoomPrice = roomPricePerNight * diffDays;
+        const totalServicePrice = servicePricePerDay * diffDays;
+        const finalTotal = totalRoomPrice + totalServicePrice;
+        
+        // Hiển thị giá
+        if (priceSummary) {
+            document.getElementById('roomPricePerNight').textContent = formatPrice(roomPricePerNight) + ' ₫/đêm';
+            document.getElementById('numberOfNights').textContent = diffDays + ' đêm';
+            document.getElementById('totalRoomPrice').textContent = formatPrice(totalRoomPrice) + ' ₫';
+            document.getElementById('servicePricePerDay').textContent = formatPrice(servicePricePerDay) + ' ₫/ngày';
+            document.getElementById('totalServicePrice').textContent = formatPrice(totalServicePrice) + ' ₫';
+            document.getElementById('finalTotalPrice').textContent = formatPrice(finalTotal) + ' ₫';
+            priceSummary.style.display = 'block';
+        }
+    }
+    
+    // Format giá tiền VND
+    function formatPrice(price) {
+        return new Intl.NumberFormat('vi-VN').format(price);
+    }
+    
     // Add event listeners - load rooms when room type is selected
     document.addEventListener('DOMContentLoaded', function() {
         const roomTypeSelect = document.getElementById('roomTypeSelect');
+        const serviceSelect = document.getElementById('serviceSelect');
         
         if (roomTypeSelect) {
-            roomTypeSelect.addEventListener('change', loadAvailableRooms);
+            roomTypeSelect.addEventListener('change', function() {
+                loadAvailableRooms();
+                calculatePrice();
+            });
+        }
+        
+        if (serviceSelect) {
+            serviceSelect.addEventListener('change', calculatePrice);
+        }
+        
+        // Tính giá và reload danh sách phòng khi người dùng thay đổi ngày
+        const checkinDate = document.getElementById('checkinDate');
+        const checkoutDate = document.getElementById('checkoutDate');
+        if (checkinDate) {
+            checkinDate.addEventListener('change', function() {
+                calculatePrice();
+                // Reload danh sách phòng để cập nhật trạng thái đặt phòng
+                if (roomTypeSelect && roomTypeSelect.value) {
+                    loadAvailableRooms();
+                }
+            });
+        }
+        if (checkoutDate) {
+            checkoutDate.addEventListener('change', function() {
+                calculatePrice();
+                // Reload danh sách phòng để cập nhật trạng thái đặt phòng
+                if (roomTypeSelect && roomTypeSelect.value) {
+                    loadAvailableRooms();
+                }
+            });
         }
     });
     

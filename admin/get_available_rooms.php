@@ -1,8 +1,8 @@
 <?php
 /**
  * API: Lấy danh sách phòng theo loại phòng
- * GET params: roomType
- * Returns: JSON array of available rooms
+ * GET params: roomType, checkIn (optional), checkOut (optional)
+ * Returns: JSON array of all rooms with availability status
  */
 
 include '../config.php';
@@ -11,6 +11,8 @@ header('Content-Type: application/json');
 
 // Get parameters
 $roomType = $_GET['roomType'] ?? '';
+$checkIn = $_GET['checkIn'] ?? '';
+$checkOut = $_GET['checkOut'] ?? '';
 
 // Validation
 if (empty($roomType)) {
@@ -22,69 +24,68 @@ if (empty($roomType)) {
     exit;
 }
 
-// Lấy tất cả phòng của loại phòng này
-// Debug: Log roomType để kiểm tra
-error_log("get_available_rooms.php - roomType received: " . $roomType);
-
 $roomTypeEscaped = mysqli_real_escape_string($conn, $roomType);
-$sql = "SELECT id, room_number, room_type, status FROM rooms WHERE room_type = '$roomTypeEscaped' AND status = 'available' ORDER BY room_number ASC";
-$result = mysqli_query($conn, $sql);
 
-// Debug: Log SQL query
-error_log("get_available_rooms.php - SQL: " . $sql);
+// Lấy TẤT CẢ phòng của loại phòng này (kể cả phòng đã đặt)
+$sql = "SELECT id, room_number, room_type, status FROM rooms WHERE room_type = '$roomTypeEscaped' ORDER BY room_number ASC";
+$result = mysqli_query($conn, $sql);
 
 if (!$result) {
     echo json_encode([
         'success' => false,
         'message' => 'Lỗi truy vấn database: ' . mysqli_error($conn),
-        'rooms' => [],
-        'debug' => ['sql' => $sql]
+        'rooms' => []
     ]);
     exit;
 }
 
-// Format response
+// Format response với thông tin phòng đã đặt
 $rooms = [];
-$count = 0;
 while ($row = mysqli_fetch_assoc($result)) {
+    $roomId = $row['id'];
+    $roomNumber = $row['room_number'];
+    $isBooked = false;
+    
+    // Kiểm tra xem phòng có bị đặt không
+    // Nếu có ngày check-in/check-out: kiểm tra xung đột trong khoảng thời gian đó
+    // Nếu không có ngày: kiểm tra xem phòng có đang được đặt bất kỳ lúc nào không
+    if (!empty($checkIn) && !empty($checkOut)) {
+        // Kiểm tra xung đột trong khoảng thời gian cụ thể
+        // Logic: Hai khoảng thời gian giao nhau nếu:
+        // - Ngày check-in mới < ngày check-out cũ VÀ ngày check-out mới > ngày check-in cũ
+        $checkInEscaped = mysqli_real_escape_string($conn, $checkIn);
+        $checkOutEscaped = mysqli_real_escape_string($conn, $checkOut);
+        
+        $checkSql = "SELECT COUNT(*) as count FROM room_assignments 
+                     WHERE room_id = $roomId 
+                     AND check_in < '$checkOutEscaped' 
+                     AND check_out > '$checkInEscaped'";
+        $checkResult = mysqli_query($conn, $checkSql);
+        if ($checkResult) {
+            $checkRow = mysqli_fetch_assoc($checkResult);
+            $isBooked = ($checkRow['count'] > 0);
+        }
+    } else {
+        // Nếu chưa chọn ngày, kiểm tra xem phòng có đang được đặt bất kỳ lúc nào không
+        // Chỉ kiểm tra các booking còn hiệu lực (check_out > ngày hiện tại)
+        $currentDate = date('Y-m-d');
+        $checkSql = "SELECT COUNT(*) as count FROM room_assignments 
+                     WHERE room_id = $roomId 
+                     AND check_out > '$currentDate'";
+        $checkResult = mysqli_query($conn, $checkSql);
+        if ($checkResult) {
+            $checkRow = mysqli_fetch_assoc($checkResult);
+            $isBooked = ($checkRow['count'] > 0);
+        }
+    }
+    
     $rooms[] = [
-        'id' => $row['id'],
-        'room_number' => $row['room_number']
+        'id' => $roomId,
+        'room_number' => $roomNumber,
+        'status' => $row['status'],
+        'is_booked' => $isBooked,
+        'available' => !$isBooked
     ];
-    $count++;
-}
-
-// Nếu không có phòng, thử query không có điều kiện status để debug
-if ($count == 0) {
-    $sql2 = "SELECT id, room_number, room_type, status FROM rooms WHERE room_type = '$roomTypeEscaped' ORDER BY room_number ASC";
-    $result2 = mysqli_query($conn, $sql2);
-    $allRooms = [];
-    while ($row2 = mysqli_fetch_assoc($result2)) {
-        $allRooms[] = $row2;
-    }
-    
-    // Thử query tất cả phòng để xem có dữ liệu không
-    $sql3 = "SELECT id, room_number, room_type, status FROM rooms ORDER BY room_type, room_number ASC LIMIT 20";
-    $result3 = mysqli_query($conn, $sql3);
-    $allRoomsInDB = [];
-    while ($row3 = mysqli_fetch_assoc($result3)) {
-        $allRoomsInDB[] = $row3;
-    }
-    
-    echo json_encode([
-        'success' => false,
-        'message' => "Không tìm thấy phòng trống (status='available') cho loại phòng '$roomType'. Tổng số phòng tìm thấy: " . count($allRooms),
-        'rooms' => [],
-        'debug' => [
-            'roomType' => $roomType,
-            'roomTypeEscaped' => $roomTypeEscaped,
-            'allRooms' => $allRooms,
-            'allRoomsInDB' => $allRoomsInDB,
-            'sql' => $sql,
-            'sql2' => $sql2
-        ]
-    ]);
-    exit;
 }
 
 echo json_encode([

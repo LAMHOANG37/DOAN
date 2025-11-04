@@ -98,18 +98,34 @@ $roomInfo = mysqli_fetch_assoc($roomInfoResult);
 $roomId = $roomInfo['id'];
 
 // Kiểm tra phòng có đang được đặt trong khoảng thời gian này không
-$checkSql = "SELECT COUNT(*) as count FROM room_assignments 
-             WHERE room_id = $roomId 
-             AND (
-                 (check_in <= '$cin' AND check_out > '$cin') OR
-                 (check_in < '$cout' AND check_out >= '$cout') OR
-                 (check_in >= '$cin' AND check_out <= '$cout')
-             )";
-$checkResult = mysqli_query($conn, $checkSql);
-$checkRow = mysqli_fetch_assoc($checkResult);
+// Escape các giá trị để tránh SQL injection
+$cin_escaped_check = mysqli_real_escape_string($conn, $cin);
+$cout_escaped_check = mysqli_real_escape_string($conn, $cout);
 
-if ($checkRow['count'] > 0) {
-    $_SESSION['error_message'] = 'Phòng không khả dụng. Phòng đã được đặt trong khoảng thời gian này. Vui lòng chọn phòng khác.';
+// Kiểm tra xung đột: phòng đã được đặt nếu có bất kỳ khoảng thời gian nào giao nhau
+// Logic: Hai khoảng thời gian giao nhau nếu:
+// - Ngày check-in mới < ngày check-out cũ VÀ ngày check-out mới > ngày check-in cũ
+$checkSql = "SELECT ra.booking_id, ra.id as assignment_id, rb.cin, rb.cout, rb.stat,
+             COALESCE(rb.id, 0) as roombook_exists
+             FROM room_assignments ra
+             LEFT JOIN roombook rb ON ra.booking_id = rb.id
+             WHERE ra.room_id = $roomId 
+             AND ra.check_in < '$cout_escaped_check' 
+             AND ra.check_out > '$cin_escaped_check'
+             ORDER BY ra.created_at ASC, ra.id ASC
+             LIMIT 1";
+$checkResult = mysqli_query($conn, $checkSql);
+
+if (!$checkResult) {
+    $_SESSION['error_message'] = 'Có lỗi xảy ra khi kiểm tra phòng. Vui lòng thử lại.';
+    header("Location: ../index.php");
+    exit;
+}
+
+// Nếu có xung đột, từ chối booking mới (KHÔNG cho phép đặt phòng đã được đặt)
+if (mysqli_num_rows($checkResult) > 0) {
+    $conflictRow = mysqli_fetch_assoc($checkResult);
+    $_SESSION['error_message'] = 'Phòng không khả dụng. Phòng đã được đặt trong khoảng thời gian này. Vui lòng chọn phòng khác hoặc chọn khoảng thời gian khác.';
     header("Location: ../index.php");
     exit;
 }
@@ -124,13 +140,65 @@ $roomData = [[
 $sta = "Confirm";
 $user_id_str = $user_id ? "'$user_id'" : "NULL";
 // Lưu Bed = NULL vì đã bỏ, Meal = Service
-// Tính số ngày trước
-$nodays = (strtotime($cout) - strtotime($cin)) / (60 * 60 * 24);
-$nodays = intval($nodays);
+
+// Tính số ngày trước - ĐẢM BẢO TÍNH ĐÚNG
+$checkinTimestamp = strtotime($cin);
+$checkoutTimestamp = strtotime($cout);
+if ($checkinTimestamp === false || $checkoutTimestamp === false) {
+    $_SESSION['error_message'] = 'Ngày nhận/trả phòng không hợp lệ.';
+    header("Location: ../index.php");
+    exit;
+}
+$nodays = ($checkoutTimestamp - $checkinTimestamp) / (60 * 60 * 24);
+$nodays = max(1, intval($nodays)); // Đảm bảo ít nhất 1 đêm
 
 // Escape các giá trị
 $cin_escaped = mysqli_real_escape_string($conn, $cin);
 $cout_escaped = mysqli_real_escape_string($conn, $cout);
+
+// Tính toán giá TRƯỚC KHI tạo booking để đảm bảo đúng
+// ✅ GIÁ PRODUCTION - Giá thật cho khách hàng
+$type_of_room = 0;
+// Trim và chuẩn hóa RoomType để tránh lỗi case-sensitive hoặc khoảng trắng
+$RoomTypeNormalized = trim($RoomType);
+
+if($RoomTypeNormalized == "Phòng Cao Cấp") {
+    $type_of_room = 3000000; // 3 triệu VND
+}
+else if($RoomTypeNormalized == "Phòng Sang Trọng") {
+    $type_of_room = 2000000; // 2 triệu VND
+}
+else if($RoomTypeNormalized == "Nhà Khách") {
+    $type_of_room = 1500000; // 1.5 triệu VND
+}
+else if($RoomTypeNormalized == "Phòng Đơn") {
+    $type_of_room = 1000000; // 1 triệu VND
+}
+else {
+    // Nếu không khớp, dùng giá mặc định (không log để tránh spam log)
+    $type_of_room = 1000000; // Giá mặc định (Phòng Đơn)
+}
+
+// Tính giá dịch vụ (bỏ Bed)
+$type_of_service = 0;
+$ServiceNormalized = trim($Service);
+if($ServiceNormalized == "Chỉ phòng") {
+    $type_of_service = 0;
+}
+else if($ServiceNormalized == "Bữa sáng") {
+    $type_of_service = $type_of_room * 0.1; // 10% giá phòng
+}
+else if($ServiceNormalized == "Nửa suất") {
+    $type_of_service = $type_of_room * 0.2; // 20% giá phòng
+}
+else if($ServiceNormalized == "Toàn bộ") {
+    $type_of_service = $type_of_room * 0.3; // 30% giá phòng
+}
+
+// Tính giá tổng
+$ttot = $type_of_room * $nodays * $numRooms;
+$servicetot = $type_of_service * $nodays;
+$fintot = $ttot + $servicetot;
 
 // Kiểm tra nếu Bed column không cho phép NULL, dùng empty string thay thế
 $sql = "INSERT INTO roombook(Name,Email,user_id,Country,Phone,RoomType,Bed,NoofRoom,Meal,cin,cout,stat,nodays) VALUES ('$Name','$Email',$user_id_str,'$Country','$Phone','$RoomType','','$numRooms','$Service','$cin_escaped','$cout_escaped','$sta',$nodays)";
@@ -165,46 +233,9 @@ if (!$assignSuccess) {
 // Lấy số phòng đã gán để hiển thị
 $roomNumbers = getBookingRoomNumbers($conn, $booking_id);
 
-// Tính toán giá (VND)
-// ⚠️ GIÁ TEST (Tiền Trăm) - Phù hợp cho test MoMo Sandbox
-$type_of_room = 0;
-if($RoomType=="Phòng Cao Cấp") {
-    $type_of_room = 500000; // 500k VND (test) - Production: 3,000,000
-}
-else if($RoomType=="Phòng Sang Trọng") {
-    $type_of_room = 300000; // 300k VND (test) - Production: 2,000,000
-}
-else if($RoomType=="Nhà Khách") {
-    $type_of_room = 200000; // 200k VND (test) - Production: 1,500,000
-}
-else if($RoomType=="Phòng Đơn") {
-    $type_of_room = 100000; // 100k VND (test) - Production: 1,000,000
-}
-
-// Tính giá dịch vụ (bỏ Bed)
-$type_of_service = 0;
-if($Service=="Chỉ phòng") {
-    $type_of_service = 0;
-}
-else if($Service=="Bữa sáng") {
-    $type_of_service = $type_of_room * 0.1; // 10% giá phòng
-}
-else if($Service=="Nửa suất") {
-    $type_of_service = $type_of_room * 0.2; // 20% giá phòng
-}
-else if($Service=="Toàn bộ") {
-    $type_of_service = $type_of_room * 0.3; // 30% giá phòng
-}
-
-// Lấy số ngày
-$get_days = "SELECT nodays FROM roombook WHERE id = '$booking_id'";
-$days_result = mysqli_query($conn, $get_days);
-$days_row = mysqli_fetch_array($days_result);
-$noofday = $days_row['nodays'];
-
-$ttot = $type_of_room * $noofday * $numRooms;
-$servicetot = $type_of_service * $noofday;
-$fintot = $ttot + $servicetot;
+// Sử dụng giá đã tính ở trên (đã tính trước đó)
+// Giá đã được tính: $ttot, $servicetot, $fintot
+$noofday = $nodays;
 
 // Tạo payment
 // Lưu ý: Bed column là NOT NULL trong database, nên dùng empty string thay vì NULL

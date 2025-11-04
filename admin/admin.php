@@ -38,15 +38,26 @@ if($usermail == true){
   
     <!-- nav bar -->
     <nav class="uppernav">
-        <div class="logo">
-            <img class="bluebirdlogo" src="../image/bluebirdlogo.png" alt="logo">
-            <p>BLUEBIRD</p>
+        <div class="nav-left">
+            <button class="menu-toggle" id="menuToggle" aria-label="Toggle menu">
+                <i class="fas fa-bars"></i>
+            </button>
+            <div class="logo">
+                <img class="bluebirdlogo">
+                <p>BLUEBIRD</p>
+            </div>
         </div>
         <div class="logout">
         <a href="../logout.php"><button class="btn btn-primary">Logout</button></a>
         </div>
     </nav>
-    <nav class="sidenav">
+    <nav class="sidenav" id="sidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-logo">
+                <img class="bluebirdlogo" src="../image/bluebirdlogo.png" alt="logo">
+                <p>BLUEBIRD</p>
+            </div>
+        </div>
         <ul>
             <li class="pagebtn active"><img src="../image/icon/dashboard.png">&nbsp&nbsp&nbsp Dashboard</li>
             <li class="pagebtn"><img src="../image/icon/bed.png">&nbsp&nbsp&nbsp Room Booking</li>

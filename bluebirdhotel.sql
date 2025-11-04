@@ -53,6 +53,16 @@ INSERT INTO `emp_login` (`empid`, `Emp_Email`, `Emp_Password`) VALUES
 
 --
 -- Table structure for table `payment`
+-- Lưu ý: Các trường giá tiền (roomtotal, bedtotal, mealtotal, finaltotal) 
+-- được lưu dưới dạng số và nên được format khi hiển thị
+--
+-- Cách format trong SQL (MySQL/MariaDB):
+--   SELECT CONCAT(FORMAT(roomtotal, 0, 'de_DE'), 'd') as roomtotal_formatted FROM payment;
+--   Hoặc: SELECT CONCAT(REPLACE(FORMAT(roomtotal, 0), ',', '.'), 'd') as roomtotal_formatted FROM payment;
+--
+-- Cách format trong PHP:
+--   number_format($value, 0, ',', '.') . 'd'
+--   Ví dụ: 1000000.00 -> "1.000.000d"
 --
 
 CREATE TABLE `payment` (
@@ -65,19 +75,72 @@ CREATE TABLE `payment` (
   `cin` date NOT NULL,
   `cout` date NOT NULL,
   `noofdays` int(30) NOT NULL,
-  `roomtotal` double(8,2) NOT NULL,
-  `bedtotal` double(8,2) NOT NULL,
+  `roomtotal` double(12,2) NOT NULL COMMENT 'Tổng tiền phòng - Format SQL: CONCAT(REPLACE(FORMAT(roomtotal, 0), ",", "."), "d") -> "1.000.000d"',
+  `bedtotal` double(12,2) NOT NULL COMMENT 'Tổng tiền giường - Format SQL: CONCAT(REPLACE(FORMAT(bedtotal, 0), ",", "."), "d") -> "0d"',
   `meal` varchar(30) NOT NULL,
-  `mealtotal` double(8,2) NOT NULL,
-  `finaltotal` double(8,2) NOT NULL
+  `mealtotal` double(12,2) NOT NULL COMMENT 'Tổng tiền bữa ăn - Format SQL: CONCAT(REPLACE(FORMAT(mealtotal, 0), ",", "."), "d") -> "0d"',
+  `finaltotal` double(12,2) NOT NULL COMMENT 'Tổng thanh toán - Format SQL: CONCAT(REPLACE(FORMAT(finaltotal, 0), ",", "."), "d") -> "1.000.000d"'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 --
 -- Dumping data for table `payment`
+-- Lưu ý: Tất cả giá trị tiền được lưu dưới dạng số (không có đơn vị)
+-- Ví dụ: 1000000.00 trong DB, khi hiển thị format thành "1.000.000d"
+--
+-- Format trong SQL:
+--   SELECT CONCAT(REPLACE(FORMAT(roomtotal, 0), ',', '.'), 'd') FROM payment;
+--   Kết quả: "1.000.000d"
+--
+-- Format trong PHP:
+--   echo number_format($value, 0, ',', '.') . 'd';
+--   Kết quả: "1.000.000d"
+--
+-- Công thức tính giá theo code:
+-- - Phòng Cao Cấp: 3,000,000/đêm
+-- - Phòng Sang Trọng: 2,000,000/đêm  
+-- - Nhà Khách: 1,500,000/đêm
+-- - Phòng Đơn: 1,000,000/đêm
+-- - roomtotal = giá_phòng × số_đêm × số_phòng
+-- - mealtotal = giá_dịch_vụ × số_đêm (Bữa sáng: 10%, Nửa suất: 20%, Toàn bộ: 30% giá phòng)
+-- - bedtotal = 0 (không tính phí giường trong hệ thống mới)
+-- - finaltotal = roomtotal + mealtotal + bedtotal
 --
 
 INSERT INTO `payment` (`id`, `Name`, `Email`, `RoomType`, `Bed`, `NoofRoom`, `cin`, `cout`, `noofdays`, `roomtotal`, `bedtotal`, `meal`, `mealtotal`, `finaltotal`) VALUES
-(41, 'Tushar pankhaniya', 'pankhaniyatushar9@gmail.com', 'Phòng Đơn', 'Đơn', 1, '2022-11-09', '2022-11-10', 1, 1000000.00, 10000.00, 'Chỉ phòng', 0.00, 1010000.00);
+-- Ví dụ 1: Phòng Đơn, 1 đêm, Chỉ phòng
+-- roomtotal = 1,000,000 × 1 × 1 = 1,000,000
+-- bedtotal = 0 (không tính)
+-- mealtotal = 0 (Chỉ phòng)
+-- finaltotal = 1,000,000 + 0 + 0 = 1,000,000
+(41, 'Tushar pankhaniya', 'pankhaniyatushar9@gmail.com', 'Phòng Đơn', 'Đơn', 1, '2022-11-09', '2022-11-10', 1, 1000000.00, 0.00, 'Chỉ phòng', 0.00, 1000000.00);
+
+-- --------------------------------------------------------
+
+--
+-- VIEW để format giá tiền theo định dạng VND (1.000.000d)
+-- Sử dụng: SELECT * FROM payment_formatted;
+--
+CREATE OR REPLACE VIEW `payment_formatted` AS
+SELECT 
+    `id`,
+    `Name`,
+    `Email`,
+    `RoomType`,
+    `Bed`,
+    `NoofRoom`,
+    `cin`,
+    `cout`,
+    `noofdays`,
+    `roomtotal`,
+    CONCAT(REPLACE(FORMAT(`roomtotal`, 0), ',', '.'), 'd') AS `roomtotal_formatted`,
+    `bedtotal`,
+    CONCAT(REPLACE(FORMAT(`bedtotal`, 0), ',', '.'), 'd') AS `bedtotal_formatted`,
+    `meal`,
+    `mealtotal`,
+    CONCAT(REPLACE(FORMAT(`mealtotal`, 0), ',', '.'), 'd') AS `mealtotal_formatted`,
+    `finaltotal`,
+    CONCAT(REPLACE(FORMAT(`finaltotal`, 0), ',', '.'), 'd') AS `finaltotal_formatted`
+FROM `payment`;
 
 -- --------------------------------------------------------
 

@@ -153,7 +153,7 @@ $recent_bookings_result = mysqli_query($conn, $recent_bookings_sql);
                                     <i class="fas fa-dollar-sign"></i>
                                 </div>
                                 <div class="stat-details">
-                                    <h3>₫<?php echo number_format($total_spent, 0, ',', '.'); ?></h3>
+                                    <h3><?php echo number_format($total_spent, 0, ',', '.') . 'd'; ?></h3>
                                     <p>Tổng Chi Tiêu</p>
                                 </div>
                             </div>

@@ -291,7 +291,7 @@ if(!$result) {
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 15px;">
                         <div class="price-tag">
                             <i class="fas fa-tag"></i>
-                            Tổng: ₫<?php echo number_format($booking['finaltotal'], 0, ',', '.'); ?>
+                            Tổng: <?php echo number_format($booking['finaltotal'], 0, ',', '.') . 'd'; ?>
                         </div>
                         
                         <?php if($payment_status == 'pending' || empty($payment_status)): ?>

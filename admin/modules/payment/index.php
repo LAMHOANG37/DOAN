@@ -1,6 +1,6 @@
 <?php
     session_start();
-    include '../../config.php';
+    include '../../../config.php';
 
 
 ?>
@@ -36,7 +36,7 @@
         <table class="table table-bordered" id="table-data">
             <thead>
                 <tr>
-                    <th scope="col">Id</th>
+                    <th scope="col">STT</th>
                     <th scope="col">Name</th>
                     <th scope="col">Room Type</th>
                     <th scope="col">Bed Type</th>
@@ -56,10 +56,15 @@
 
             <tbody>
             <?php
+            $stt = 1; // Số thứ tự bắt đầu từ 1
             while ($res = mysqli_fetch_array($paymantresult)) {
             ?>
                 <tr>
-                    <td><?php echo $res['id'] ?></td>
+                    <td>
+                        <span style="font-weight: 600; color: #0d6efd;">
+                            <?php echo $stt++; ?>
+                        </span>
+                    </td>
                     <td><?php echo $res['Name'] ?></td>
                     <td><?php echo $res['RoomType'] ?></td>
                     <td><?php echo $res['Bed'] ?></td>
@@ -68,10 +73,10 @@
 					<td><?php echo $res['noofdays'] ?></td>
                     <td><?php echo $res['NoofRoom'] ?></td>
                     <td><?php echo $res['meal'] ?></td>
-                    <td><?php echo $res['roomtotal'] ?></td>
-					<td><?php echo $res['bedtotal'] ?></td>
-					<td><?php echo $res['mealtotal'] ?></td>
-					<td><?php echo $res['finaltotal'] ?></td>
+                    <td style="font-weight: 600; color: #0d6efd;"><?php echo number_format($res['roomtotal'], 0, ',', '.') . 'd'; ?></td>
+					<td style="font-weight: 600; color: #0d6efd;"><?php echo number_format($res['bedtotal'], 0, ',', '.') . 'd'; ?></td>
+					<td style="font-weight: 600; color: #0d6efd;"><?php echo number_format($res['mealtotal'], 0, ',', '.') . 'd'; ?></td>
+					<td style="font-weight: 700; color: #198754; font-size: 15px;"><?php echo number_format($res['finaltotal'], 0, ',', '.') . 'd'; ?></td>
                     <td class="action">
                         <a href="edit.php?id=<?php echo $res['id']?>"><button class="btn btn-warning"><i class="fa-solid fa-edit"></i> Edit</button></a>
                         <a href="invoice.php?id= <?php echo $res['id']?>"><button class="btn btn-primary"><i class="fa-solid fa-print"></i> Print</button></a>

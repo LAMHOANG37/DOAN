@@ -1,6 +1,6 @@
 <?php
 
-include '../../config.php';
+include '../../../config.php';
 
 // fetch payment data
 $id = $_GET['id'];
@@ -238,10 +238,10 @@ if (isset($_POST['paymentedit'])) {
                     
                     <h4 style="margin-top: 20px;">Current Payment Details</h4>
                     <div class="price-info">
-                        <p><span>Room Total:</span> <span>₫<?php echo number_format($roomtotal, 0, ',', '.') ?></span></p>
-                        <p><span>Bed Total:</span> <span>₫<?php echo number_format($bedtotal, 0, ',', '.') ?></span></p>
-                        <p><span>Meal Total:</span> <span>₫<?php echo number_format($mealtotal, 0, ',', '.') ?></span></p>
-                        <p class="total"><span>Final Total:</span> <span>₫<?php echo number_format($finaltotal, 0, ',', '.') ?></span></p>
+                        <p><span>Room Total:</span> <span><?php echo number_format($roomtotal, 0, ',', '.') . 'd'; ?></span></p>
+                        <p><span>Bed Total:</span> <span><?php echo number_format($bedtotal, 0, ',', '.') . 'd'; ?></span></p>
+                        <p><span>Meal Total:</span> <span><?php echo number_format($mealtotal, 0, ',', '.') . 'd'; ?></span></p>
+                        <p class="total"><span>Final Total:</span> <span><?php echo number_format($finaltotal, 0, ',', '.') . 'd'; ?></span></p>
                     </div>
                 </div>
 
@@ -251,10 +251,10 @@ if (isset($_POST['paymentedit'])) {
                     <h4>Reservation Information</h4>
                     <select name="RoomType" class="selectinput" required>
                         <option value="">Type Of Room</option>
-                        <option value="Phòng Cao Cấp" <?php if($RoomType=="Phòng Cao Cấp") echo "selected"; ?>>PHÒNG CAO CẤP (₫3.000.000/đêm)</option>
-                        <option value="Phòng Sang Trọng" <?php if($RoomType=="Phòng Sang Trọng") echo "selected"; ?>>PHÒNG SANG TRỌNG (₫2.000.000/đêm)</option>
-                        <option value="Nhà Khách" <?php if($RoomType=="Nhà Khách") echo "selected"; ?>>NHÀ KHÁCH (₫1.500.000/đêm)</option>
-                        <option value="Phòng Đơn" <?php if($RoomType=="Phòng Đơn") echo "selected"; ?>>PHÒNG ĐƠN (₫1.000.000/đêm)</option>
+                        <option value="Phòng Cao Cấp" <?php if($RoomType=="Phòng Cao Cấp") echo "selected"; ?>>PHÒNG CAO CẤP (3.000.000d/đêm)</option>
+                        <option value="Phòng Sang Trọng" <?php if($RoomType=="Phòng Sang Trọng") echo "selected"; ?>>PHÒNG SANG TRỌNG (2.000.000d/đêm)</option>
+                        <option value="Nhà Khách" <?php if($RoomType=="Nhà Khách") echo "selected"; ?>>NHÀ KHÁCH (1.500.000d/đêm)</option>
+                        <option value="Phòng Đơn" <?php if($RoomType=="Phòng Đơn") echo "selected"; ?>>PHÒNG ĐƠN (1.000.000d/đêm)</option>
                     </select>
                     <select name="Bed" class="selectinput" required>
                         <option value="">Loại Giường</option>

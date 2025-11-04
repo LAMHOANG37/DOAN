@@ -1,6 +1,6 @@
 <?php
 
-include '../../config.php';
+include '../../../config.php';
 
 $sqlq = "SELECT * FROM roombook";
 $result = mysqli_query($conn,$sqlq);

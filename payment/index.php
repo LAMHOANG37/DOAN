@@ -51,45 +51,9 @@ $mealtotal = $row['mealtotal'];
 $finaltotal = $row['finaltotal'];
 $noofdays = $row['noofdays'];
 
-// Calculate price per unit (VND)
-// ⚠️ Đồng bộ với giá trong process_booking.php
-// ⚠️ GIÁ TEST (Tiền Trăm) - Phù hợp cho test MoMo Sandbox
-$type_of_room = 0;
-if ($RoomType == "Phòng Cao Cấp") {
-    $type_of_room = 500000; // 500k VND (test) - Production: 3,000,000
-} else if ($RoomType == "Phòng Sang Trọng") {
-    $type_of_room = 300000; // 300k VND (test) - Production: 2,000,000
-} else if ($RoomType == "Nhà Khách") {
-    $type_of_room = 200000; // 200k VND (test) - Production: 1,500,000
-} else if ($RoomType == "Phòng Đơn") {
-    $type_of_room = 100000; // 100k VND (test) - Production: 1,000,000
-}
-
-// Tính giá bed (nếu Bed là empty string hoặc không có, mặc định = 0)
-$type_of_bed = 0;
-if ($Bed == "Đơn") {
-    $type_of_bed = $type_of_room * 1 / 100;
-} else if ($Bed == "Đôi") {
-    $type_of_bed = $type_of_room * 2 / 100;
-} else if ($Bed == "Ba") {
-    $type_of_bed = $type_of_room * 3 / 100;
-} else if ($Bed == "Bốn") {
-    $type_of_bed = $type_of_room * 4 / 100;
-} else if ($Bed == "Không" || $Bed == "" || empty($Bed)) {
-    $type_of_bed = 0; // Không có bed charge
-}
-
-// Tính giá meal (dựa trên type_of_room thay vì type_of_bed vì đã bỏ bed)
-$type_of_meal = 0;
-if ($Meal == "Chỉ phòng") {
-    $type_of_meal = 0;
-} else if ($Meal == "Bữa sáng") {
-    $type_of_meal = $type_of_room * 0.1; // 10% giá phòng
-} else if ($Meal == "Nửa suất") {
-    $type_of_meal = $type_of_room * 0.2; // 20% giá phòng
-} else if ($Meal == "Toàn bộ") {
-    $type_of_meal = $type_of_room * 0.3; // 30% giá phòng
-}
+// ✅ CHỈ SỬ DỤNG GIÁ TỪ DATABASE - KHÔNG TÍNH LẠI
+// Giá đã được tính và lưu chính xác trong process_booking.php
+// Ở đây chỉ lấy và hiển thị giá từ database
 ?>
 
 <!DOCTYPE html>
@@ -348,21 +312,30 @@ if ($Meal == "Chỉ phòng") {
                 <!-- Price Breakdown -->
                 <div class="price-breakdown">
                     <h3><i class="fas fa-file-invoice-dollar"></i> Price Breakdown</h3>
+                    <?php
+                    // Tính giá mỗi đêm từ database (để hiển thị label chính xác)
+                    $room_price_per_night = $noofdays > 0 ? ($roomtotal / ($noofdays * $NoofRoom)) : 0;
+                    $meal_price_per_day = $noofdays > 0 ? ($mealtotal / $noofdays) : 0;
+                    ?>
                     <div class="price-item">
-                        <span class="price-label"><?php echo $RoomType; ?> (₫<?php echo number_format($type_of_room, 0, ',', '.'); ?>/night × <?php echo $noofdays; ?> nights × <?php echo $NoofRoom; ?> room)</span>
-                        <span class="price-value">₫<?php echo number_format($roomtotal, 0, ',', '.'); ?></span>
+                        <span class="price-label"><?php echo $RoomType; ?> (<?php echo number_format($room_price_per_night, 0, ',', '.') . 'd'; ?>/night × <?php echo $noofdays; ?> nights × <?php echo $NoofRoom; ?> room)</span>
+                        <span class="price-value"><?php echo number_format($roomtotal, 0, ',', '.') . 'd'; ?></span>
                     </div>
+                    <?php if($bedtotal > 0): ?>
                     <div class="price-item">
-                        <span class="price-label">Bed Charges (₫<?php echo number_format($type_of_bed, 0, ',', '.'); ?>/night × <?php echo $noofdays; ?> nights)</span>
-                        <span class="price-value">₫<?php echo number_format($bedtotal, 0, ',', '.'); ?></span>
+                        <span class="price-label">Bed Charges (<?php echo number_format($bedtotal / $noofdays, 0, ',', '.') . 'd'; ?>/night × <?php echo $noofdays; ?> nights)</span>
+                        <span class="price-value"><?php echo number_format($bedtotal, 0, ',', '.') . 'd'; ?></span>
                     </div>
+                    <?php endif; ?>
+                    <?php if($mealtotal > 0): ?>
                     <div class="price-item">
-                        <span class="price-label">Meal - <?php echo $Meal; ?> (₫<?php echo number_format($type_of_meal, 0, ',', '.'); ?>/day × <?php echo $noofdays; ?> days)</span>
-                        <span class="price-value">₫<?php echo number_format($mealtotal, 0, ',', '.'); ?></span>
+                        <span class="price-label">Meal - <?php echo $Meal; ?> (<?php echo number_format($meal_price_per_day, 0, ',', '.') . 'd'; ?>/day × <?php echo $noofdays; ?> days)</span>
+                        <span class="price-value"><?php echo number_format($mealtotal, 0, ',', '.') . 'd'; ?></span>
                     </div>
+                    <?php endif; ?>
                     <div class="price-total">
                         <span>Total Amount:</span>
-                        <span>₫<?php echo number_format($finaltotal, 0, ',', '.'); ?></span>
+                        <span><?php echo number_format($finaltotal, 0, ',', '.') . 'd'; ?></span>
                     </div>
                 </div>
 

@@ -1,6 +1,6 @@
 <?php
 
-include '../../config.php';
+include '../../../config.php';
 
 // fetch room data
 $id = $_GET['id'];
@@ -36,60 +36,70 @@ if (isset($_POST['guestdetailedit'])) {
     $result = mysqli_query($conn, $sql);
 
     $type_of_room = 0;
-    if($EditRoomType=="Superior Room")
+    // ✅ GIÁ PRODUCTION - Cập nhật để khớp với tên phòng tiếng Việt
+    if($EditRoomType=="Phòng Cao Cấp")
     {
-        $type_of_room = 3000;
+        $type_of_room = 3000000; // 3 triệu VND
     }
-    else if($EditRoomType=="Deluxe Room")
+    else if($EditRoomType=="Phòng Sang Trọng")
     {
-        $type_of_room = 2000;
+        $type_of_room = 2000000; // 2 triệu VND
     }
-    else if($EditRoomType=="Guest House")
+    else if($EditRoomType=="Nhà Khách")
     {
-        $type_of_room = 1500;
+        $type_of_room = 1500000; // 1.5 triệu VND
     }
-    else if($EditRoomType=="Single Room")
+    else if($EditRoomType=="Phòng Đơn")
     {
-        $type_of_room = 1000;
+        $type_of_room = 1000000; // 1 triệu VND
+    }
+    else {
+        // Giá mặc định nếu không khớp
+        $type_of_room = 1000000;
     }
     
     
-    if($EditBed=="Single")
+    // Cập nhật để khớp với tên giường tiếng Việt
+    if($EditBed=="Đơn")
     {
         $type_of_bed = $type_of_room * 1/100;
     }
-    else if($EditBed=="Double")
+    else if($EditBed=="Đôi")
     {
         $type_of_bed = $type_of_room * 2/100;
     }
-    else if($EditBed=="Triple")
+    else if($EditBed=="Ba")
     {
         $type_of_bed = $type_of_room * 3/100;
     }
-    else if($EditBed=="Quad")
+    else if($EditBed=="Bốn")
     {
         $type_of_bed = $type_of_room * 4/100;
     }
-    else if($EditBed=="None")
+    else if($EditBed=="Không" || $EditBed=="")
     {
-        $type_of_bed = $type_of_room * 0/100;
+        $type_of_bed = 0;
     }
 
-    if($EditMeal=="Room only")
+    // Cập nhật để khớp với tên bữa ăn tiếng Việt
+    if($EditMeal=="Chỉ phòng")
     {
-        $type_of_meal=$type_of_bed * 0;
+        $type_of_meal = 0;
     }
-    else if($EditMeal=="Breakfast")
+    else if($EditMeal=="Bữa sáng")
     {
-        $type_of_meal=$type_of_bed * 2;
+        $type_of_meal = $type_of_room * 0.1; // 10% giá phòng
     }
-    else if($EditMeal=="Half Board")
+    else if($EditMeal=="Nửa suất" || $EditMeal=="Nửa ngày")
     {
-        $type_of_meal=$type_of_bed * 3;
+        $type_of_meal = $type_of_room * 0.2; // 20% giá phòng
     }
-    else if($EditMeal=="Full Board")
+    else if($EditMeal=="Toàn bộ" || $EditMeal=="Trọn ngày")
     {
-        $type_of_meal=$type_of_bed * 4;
+        $type_of_meal = $type_of_room * 0.3; // 30% giá phòng
+    }
+    else {
+        $type_of_meal = 0;
     }
     
     // noofday update

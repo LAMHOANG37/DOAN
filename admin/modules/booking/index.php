@@ -1,6 +1,6 @@
 <?php
 session_start();
-include '../../config.php';
+include '../../../config.php';
 
 ?>
 
@@ -19,7 +19,7 @@ include '../../config.php';
     <!-- sweet alert -->
     <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
     <link rel="stylesheet" href="./booking.css">
-    <title>BlueBird - Admin</title>
+    <title>Quản Lý Đặt Phòng - BlueBird Hotel</title>
 </head>
 
 <body>
@@ -28,21 +28,21 @@ include '../../config.php';
     <div id="guestdetailpanel">
         <form action="" method="POST" class="guestdetailpanelform">
             <div class="head">
-                <h3>RESERVATION</h3>
+                <h3><i class="fa-solid fa-bookmark"></i> ĐẶT PHÒNG MỚI</h3>
                 <i class="fa-solid fa-circle-xmark" onclick="adduserclose()"></i>
             </div>
             <div class="middle">
                 <div class="guestinfo">
-                    <h4>Guest information</h4>
-                    <input type="text" name="Name" placeholder="Enter Full name" required>
-                    <input type="email" name="Email" placeholder="Enter Email" required>
+                    <h4><i class="fa-solid fa-user"></i> Thông Tin Khách Hàng</h4>
+                    <input type="text" name="Name" placeholder="Nhập họ tên" required>
+                    <input type="email" name="Email" placeholder="Nhập email" required>
 
                     <?php
                     $countries = array("Afghanistan", "Albania", "Algeria", "American Samoa", "Andorra", "Angola", "Anguilla", "Antarctica", "Antigua and Barbuda", "Argentina", "Armenia", "Aruba", "Australia", "Austria", "Azerbaijan", "Bahamas", "Bahrain", "Bangladesh", "Barbados", "Belarus", "Belgium", "Belize", "Benin", "Bermuda", "Bhutan", "Bolivia", "Bosnia and Herzegowina", "Botswana", "Bouvet Island", "Brazil", "British Indian Ocean Territory", "Brunei Darussalam", "Bulgaria", "Burkina Faso", "Burundi", "Cambodia", "Cameroon", "Canada", "Cape Verde", "Cayman Islands", "Central African Republic", "Chad", "Chile", "China", "Christmas Island", "Cocos (Keeling) Islands", "Colombia", "Comoros", "Congo", "Congo, the Democratic Republic of the", "Cook Islands", "Costa Rica", "Cote d'Ivoire", "Croatia (Hrvatska)", "Cuba", "Cyprus", "Czech Republic", "Denmark", "Djibouti", "Dominica", "Dominican Republic", "East Timor", "Ecuador", "Egypt", "El Salvador", "Equatorial Guinea", "Eritrea", "Estonia", "Ethiopia", "Falkland Islands (Malvinas)", "Faroe Islands", "Fiji", "Finland", "France", "France Metropolitan", "French Guiana", "French Polynesia", "French Southern Territories", "Gabon", "Gambia", "Georgia", "Germany", "Ghana", "Gibraltar", "Greece", "Greenland", "Grenada", "Guadeloupe", "Guam", "Guatemala", "Guinea", "Guinea-Bissau", "Guyana", "Haiti", "Heard and Mc Donald Islands", "Holy See (Vatican City State)", "Honduras", "Hong Kong", "Hungary", "Iceland", "India", "Indonesia", "Iran (Islamic Republic of)", "Iraq", "Ireland", "Israel", "Italy", "Jamaica", "Japan", "Jordan", "Kazakhstan", "Kenya", "Kiribati", "Korea, Democratic People's Republic of", "Korea, Republic of", "Kuwait", "Kyrgyzstan", "Lao, People's Democratic Republic", "Latvia", "Lebanon", "Lesotho", "Liberia", "Libyan Arab Jamahiriya", "Liechtenstein", "Lithuania", "Luxembourg", "Macau", "Macedonia, The Former Yugoslav Republic of", "Madagascar", "Malawi", "Malaysia", "Maldives", "Mali", "Malta", "Marshall Islands", "Martinique", "Mauritania", "Mauritius", "Mayotte", "Mexico", "Micronesia, Federated States of", "Moldova, Republic of", "Monaco", "Mongolia", "Montserrat", "Morocco", "Mozambique", "Myanmar", "Namibia", "Nauru", "Nepal", "Netherlands", "Netherlands Antilles", "New Caledonia", "New Zealand", "Nicaragua", "Niger", "Nigeria", "Niue", "Norfolk Island", "Northern Mariana Islands", "Norway", "Oman", "Pakistan", "Palau", "Panama", "Papua New Guinea", "Paraguay", "Peru", "Philippines", "Pitcairn", "Poland", "Portugal", "Puerto Rico", "Qatar", "Reunion", "Romania", "Russian Federation", "Rwanda", "Saint Kitts and Nevis", "Saint Lucia", "Saint Vincent and the Grenadines", "Samoa", "San Marino", "Sao Tome and Principe", "Saudi Arabia", "Senegal", "Seychelles", "Sierra Leone", "Singapore", "Slovakia (Slovak Republic)", "Slovenia", "Solomon Islands", "Somalia", "South Africa", "South Georgia and the South Sandwich Islands", "Spain", "Sri Lanka", "St. Helena", "St. Pierre and Miquelon", "Sudan", "Suriname", "Svalbard and Jan Mayen Islands", "Swaziland", "Sweden", "Switzerland", "Syrian Arab Republic", "Taiwan, Province of China", "Tajikistan", "Tanzania, United Republic of", "Thailand", "Togo", "Tokelau", "Tonga", "Trinidad and Tobago", "Tunisia", "Turkey", "Turkmenistan", "Turks and Caicos Islands", "Tuvalu", "Uganda", "Ukraine", "United Arab Emirates", "United Kingdom", "United States", "United States Minor Outlying Islands", "Uruguay", "Uzbekistan", "Vanuatu", "Venezuela", "Vietnam", "Virgin Islands (British)", "Virgin Islands (U.S.)", "Wallis and Futuna Islands", "Western Sahara", "Yemen", "Yugoslavia", "Zambia", "Zimbabwe");
                     ?>
 
                     <select name="Country" class="selectinput" required>
-						<option value selected >Select your country</option>
+						<option value selected >Chọn quốc gia</option>
                         <?php
 							foreach($countries as $key => $value):
 							echo '<option value="'.$value.'">'.$value.'</option>';
@@ -50,55 +50,55 @@ include '../../config.php';
 							endforeach;
 						?>
                     </select>
-                    <input type="text" name="Phone" placeholder="Enter Phoneno" required>
+                    <input type="text" name="Phone" placeholder="Nhập số điện thoại" required>
                 </div>
 
                 <div class="line"></div>
 
                 <div class="reservationinfo">
-                    <h4>Reservation information</h4>
+                    <h4><i class="fa-solid fa-calendar-check"></i> Thông Tin Đặt Phòng</h4>
                     <select name="RoomType" class="selectinput">
-						<option value selected >Type Of Room</option>
-                        <option value="Superior Room">SUPERIOR ROOM</option>
-                        <option value="Deluxe Room">DELUXE ROOM</option>
-						<option value="Guest House">GUEST HOUSE</option>
-						<option value="Single Room">SINGLE ROOM</option>
+						<option value selected >Loại Phòng</option>
+                        <option value="Phòng Cao Cấp">Phòng Cao Cấp</option>
+                        <option value="Phòng Sang Trọng">Phòng Sang Trọng</option>
+						<option value="Nhà Khách">Nhà Khách</option>
+						<option value="Phòng Đơn">Phòng Đơn</option>
                     </select>
                     <select name="Bed" class="selectinput">
-						<option value selected >Bedding Type</option>
-                        <option value="Single">Single</option>
-                        <option value="Double">Double</option>
-						<option value="Triple">Triple</option>
-                        <option value="Quad">Quad</option>
-						<option value="None">None</option>
+						<option value selected >Loại Giường</option>
+                        <option value="Đơn">Đơn</option>
+                        <option value="Đôi">Đôi</option>
+						<option value="Ba">Ba</option>
+                        <option value="Bốn">Bốn</option>
+						<option value="Không">Không</option>
                     </select>
                     <select name="NoofRoom" class="selectinput">
-						<option value selected >No of Room</option>
+						<option value selected >Số Phòng</option>
                         <option value="1">1</option>
                         <!-- <option value="1">2</option>
                         <option value="1">3</option> -->
                     </select>
                     <select name="Meal" class="selectinput">
-						<option value selected >Meal</option>
-                        <option value="Room only">Room only</option>
-                        <option value="Breakfast">Breakfast</option>
-						<option value="Half Board">Half Board</option>
-						<option value="Full Board">Full Board</option>
+						<option value selected >Bữa Ăn</option>
+                        <option value="Chỉ phòng">Chỉ phòng</option>
+                        <option value="Bữa sáng">Bữa sáng</option>
+						<option value="Nửa ngày">Nửa ngày</option>
+						<option value="Trọn ngày">Trọn ngày</option>
 					</select>
                     <div class="datesection">
                         <span>
-                            <label for="cin"> Check-In</label>
+                            <label for="cin"><i class="fa-solid fa-calendar-days"></i> Ngày Nhận Phòng</label>
                             <input name="cin" type ="date">
                         </span>
                         <span>
-                            <label for="cin"> Check-Out</label>
+                            <label for="cout"><i class="fa-solid fa-calendar-days"></i> Ngày Trả Phòng</label>
                             <input name="cout" type ="date">
                         </span>
                     </div>
                 </div>
             </div>
             <div class="footer">
-                <button class="btn btn-success" name="guestdetailsubmit">Submit</button>
+                <button class="btn btn-success" name="guestdetailsubmit"><i class="fa-solid fa-check"></i> Xác Nhận Đặt Phòng</button>
             </div>
         </form>
 
@@ -281,10 +281,13 @@ include '../../config.php';
     
     <!-- ================================================= -->
     <div class="searchsection">
-        <input type="text" name="search_bar" id="search_bar" placeholder="search..." onkeyup="searchFun()">
-        <button class="adduser" id="adduser" onclick="adduseropen()"><i class="fa-solid fa-bookmark"></i> Add</button>
-        <form action="./export.php" method="post">
-            <button class="exportexcel" id="exportexcel" name="exportexcel" type="submit"><i class="fa-solid fa-file-arrow-down"></i></button>
+        <div class="search-wrapper">
+            <i class="fa-solid fa-magnifying-glass search-icon"></i>
+            <input type="text" name="search_bar" id="search_bar" placeholder="Tìm kiếm theo tên, email, số điện thoại..." onkeyup="searchFun()">
+        </div>
+        <button class="adduser" id="adduser" onclick="adduseropen()"><i class="fa-solid fa-plus"></i> Thêm Đặt Phòng</button>
+        <form action="./export.php" method="post" style="display: inline;">
+            <button class="exportexcel" id="exportexcel" name="exportexcel" type="submit" title="Xuất Excel"><i class="fa-solid fa-file-excel"></i></button>
         </form>
     </div>
 
@@ -297,38 +300,35 @@ include '../../config.php';
         <table class="table table-bordered" id="table-data">
             <thead>
                 <tr>
-                    <th scope="col">Id</th>
-                    <th scope="col">Name</th>
-                    <th scope="col">Email</th>
-                    <th scope="col">Country</th>
-                    <th scope="col">Phone</th>
-                    <th scope="col">Type of Room</th>
-                    <th scope="col">Type of Bed</th>
-                    <th scope="col">No of Room</th>
-                    <th scope="col">Room Numbers</th>
-                    <th scope="col">Meal</th>
-                    <th scope="col">Check-In</th>
-                    <th scope="col">Check-Out</th>
-                    <th scope="col">No of Day</th>
-                    <th scope="col">Status</th>
-                    <th scope="col" class="action">Action</th>
-                    <!-- <th>Delete</th> -->
+                    <th scope="col">STT</th>
+                    <th scope="col"><i class="fa-solid fa-user"></i> Tên Khách</th>
+                    <th scope="col"><i class="fa-solid fa-envelope"></i> Email</th>
+                    <th scope="col"><i class="fa-solid fa-phone"></i> SĐT</th>
+                    <th scope="col"><i class="fa-solid fa-bed"></i> Loại Phòng</th>
+                    <th scope="col"><i class="fa-solid fa-hashtag"></i> Số Phòng</th>
+                    <th scope="col"><i class="fa-solid fa-utensils"></i> Bữa Ăn</th>
+                    <th scope="col"><i class="fa-solid fa-calendar-check"></i> Nhận Phòng</th>
+                    <th scope="col"><i class="fa-solid fa-calendar-xmark"></i> Trả Phòng</th>
+                    <th scope="col"><i class="fa-solid fa-circle-info"></i> Trạng Thái</th>
+                    <th scope="col" class="action"><i class="fa-solid fa-gear"></i> Thao Tác</th>
                 </tr>
             </thead>
 
             <tbody>
             <?php
+            $stt = 1; // Số thứ tự bắt đầu từ 1
             while ($res = mysqli_fetch_array($roombookresult)) {
             ?>
                 <tr>
-                    <td><?php echo $res['id'] ?></td>
+                    <td>
+                        <span style="font-weight: 600; color: #0d6efd;">
+                            <?php echo $stt++; ?>
+                        </span>
+                    </td>
                     <td><?php echo $res['Name'] ?></td>
                     <td><?php echo $res['Email'] ?></td>
-                    <td><?php echo $res['Country'] ?></td>
                     <td><?php echo $res['Phone'] ?></td>
-                    <td><?php echo $res['RoomType'] ?></td>
-                    <td><?php echo $res['Bed'] ?></td>
-                    <td><?php echo $res['NoofRoom'] ?></td>
+                    <td><span class="room-type-badge"><?php echo $res['RoomType'] ?></span></td>
                     <td>
                         <?php 
                         $roomNumbers = $res['room_numbers'] ?? null;
@@ -342,21 +342,27 @@ include '../../config.php';
                     <td><?php echo $res['Meal'] ?></td>
                     <td><?php echo $res['cin'] ?></td>
                     <td><?php echo $res['cout'] ?></td>
-                    <td><?php echo $res['nodays'] ?></td>
-                    <td><?php echo $res['stat'] ?></td>
-                    <td class="action">
-                        <?php
-                            if($res['stat'] == "Confirm")
-                            {
-                                echo " ";
-                            }
-                            else
-                            {
-                                echo "<a href='confirm.php?id=". $res['id'] ."'><button class='btn btn-success'>Confirm</button></a>";
-                            }
+                    <td>
+                        <?php 
+                        $status = $res['stat'];
+                        if($status == "Confirm") {
+                            echo '<span class="badge-status badge-confirm"><i class="fa-solid fa-check-circle"></i> Đã Xác Nhận</span>';
+                        } else {
+                            echo '<span class="badge-status badge-pending"><i class="fa-solid fa-clock"></i> Chờ Xác Nhận</span>';
+                        }
                         ?>
-                        <a href="edit.php?id=<?php echo $res['id'] ?>"><button class="btn btn-primary">Edit</button></a>
-                        <a href="delete.php?id=<?php echo $res['id'] ?>"><button class='btn btn-danger'>Delete</button></a>
+                    </td>
+                    <td class="action">
+                        <div class="action-buttons">
+                            <?php
+                                if($res['stat'] != "Confirm")
+                                {
+                                    echo "<a href='confirm.php?id=". $res['id'] ."' class='action-link'><button class='btn-action btn-confirm' title='Xác nhận'><i class='fa-solid fa-check'></i></button></a>";
+                                }
+                            ?>
+                            <a href="edit.php?id=<?php echo $res['id'] ?>" class="action-link"><button class="btn-action btn-edit" title="Sửa"><i class="fa-solid fa-pen-to-square"></i></button></a>
+                            <a href="delete.php?id=<?php echo $res['id'] ?>" class="action-link" onclick="return confirm('Bạn có chắc chắn muốn xóa đặt phòng này?');"><button class="btn-action btn-delete" title="Xóa"><i class="fa-solid fa-trash"></i></button></a>
+                        </div>
                     </td>
                 </tr>
             <?php

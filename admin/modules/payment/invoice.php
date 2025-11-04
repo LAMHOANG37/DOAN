@@ -381,7 +381,7 @@
 
 	<?php
 	ob_start();
-	include '../../config.php';
+	include '../../../config.php';
 
 	$id = $_GET['id'];
 
@@ -476,23 +476,23 @@
 				<tr>
 					<td><span><?php echo $troom; ?></span></td>
 					<td><span><?php echo $days; ?> </span></td>
-					<td><span data-prefix>₫</span><span><?php echo number_format($type_of_room, 0, ',', '.'); ?></span></td>
+					<td><span><?php echo number_format($type_of_room, 0, ',', '.') . 'd'; ?></span></td>
 					<td><span><?php echo $nroom; ?> </span></td>
-					<td><span data-prefix>₫</span><span><?php echo number_format($ttot, 0, ',', '.'); ?></span></td>
+					<td><span><?php echo number_format($ttot, 0, ',', '.') . 'd'; ?></span></td>
 				</tr>
 				<tr>
 					<td><span><?php echo $bed; ?> Bed </span></td>
 					<td><span><?php echo $days; ?></span></td>
-					<td><span data-prefix>₫</span><span><?php echo number_format($type_of_bed, 0, ',', '.'); ?></span></td>
+					<td><span><?php echo number_format($type_of_bed, 0, ',', '.') . 'd'; ?></span></td>
 					<td><span><?php echo $nroom; ?> </span></td>
-					<td><span data-prefix>₫</span><span><?php echo number_format($btot, 0, ',', '.'); ?></span></td>
+					<td><span><?php echo number_format($btot, 0, ',', '.') . 'd'; ?></span></td>
 				</tr>
 				<tr>
 					<td><span><?php echo $meal; ?> </span></td>
 					<td><span><?php echo $days; ?></span></td>
-					<td><span data-prefix>₫</span><span><?php echo number_format($type_of_meal, 0, ',', '.'); ?></span></td>
+					<td><span><?php echo number_format($type_of_meal, 0, ',', '.') . 'd'; ?></span></td>
 					<td><span><?php echo $nroom; ?> </span></td>
-					<td><span data-prefix>₫</span><span><?php echo number_format($mepr, 0, ',', '.'); ?></span></td>
+					<td><span><?php echo number_format($mepr, 0, ',', '.') . 'd'; ?></span></td>
 				</tr>
 			</tbody>
 		</table>
@@ -500,15 +500,15 @@
 		<table class="balance">
 			<tr>
 				<th><span>Total</span></th>
-				<td><span data-prefix>₫</span><span><?php echo number_format($fintot, 0, ',', '.'); ?></span></td>
+				<td><span><?php echo number_format($fintot, 0, ',', '.') . 'd'; ?></span></td>
 			</tr>
 			<tr>
 				<th><span>Amount Paid</span></th>
-				<td><span data-prefix>₫</span><span>0</span></td>
+				<td><span>0d</span></td>
 			</tr>
 			<tr>
 				<th><span>Balance Due</span></th>
-				<td><span data-prefix>₫</span><span><?php echo number_format($fintot, 0, ',', '.'); ?></span></td>
+				<td><span><?php echo number_format($fintot, 0, ',', '.') . 'd'; ?></span></td>
 			</tr>
 		</table>
 	</article>
