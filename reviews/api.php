@@ -27,6 +27,7 @@ try {
           `user_email` varchar(100) NOT NULL,
           `username` varchar(100) NOT NULL,
           `avatar` varchar(255) DEFAULT 'default-avatar.png',
+          `room_type` varchar(50) DEFAULT NULL,
           `rating` int(1) NOT NULL,
           `review_text` text NOT NULL,
           `status` enum('pending','approved','rejected') DEFAULT 'approved',
@@ -36,11 +37,19 @@ try {
           KEY `user_id` (`user_id`),
           KEY `user_email` (`user_email`),
           KEY `status` (`status`),
+          KEY `room_type` (`room_type`),
           KEY `created_at` (`created_at`)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4";
         
         if (!mysqli_query($conn, $createTableSQL)) {
             throw new Exception('Failed to create reviews table: ' . mysqli_error($conn));
+        }
+    } else {
+        // Check if room_type column exists, if not add it
+        $checkColumn = mysqli_query($conn, "SHOW COLUMNS FROM reviews LIKE 'room_type'");
+        if (mysqli_num_rows($checkColumn) == 0) {
+            $addColumnSQL = "ALTER TABLE reviews ADD COLUMN room_type varchar(50) DEFAULT NULL AFTER avatar, ADD KEY room_type (room_type)";
+            @mysqli_query($conn, $addColumnSQL);
         }
     }
 } catch (Exception $e) {
@@ -64,16 +73,23 @@ $method = $_SERVER['REQUEST_METHOD'];
 if ($method === 'GET') {
     $limit = isset($_GET['limit']) ? (int)$_GET['limit'] : 10;
     $status = isset($_GET['status']) ? $_GET['status'] : 'approved';
+    $roomType = isset($_GET['room_type']) ? $_GET['room_type'] : '';
     
     $status = mysqli_real_escape_string($conn, $status);
+    $roomType = mysqli_real_escape_string($conn, $roomType);
     $limit = max(1, min(100, $limit)); // Limit between 1 and 100
     
     $sql = "SELECT r.*, s.Username, s.avatar 
             FROM reviews r
             LEFT JOIN signup s ON r.user_id = s.UserID
-            WHERE r.status = '$status'
-            ORDER BY r.created_at DESC
-            LIMIT $limit";
+            WHERE r.status = '$status'";
+    
+    // Filter by room_type if provided
+    if (!empty($roomType)) {
+        $sql .= " AND (r.room_type = '$roomType' OR r.room_type IS NULL)";
+    }
+    
+    $sql .= " ORDER BY r.created_at DESC LIMIT $limit";
     
     $result = mysqli_query($conn, $sql);
     
@@ -97,6 +113,7 @@ if ($method === 'GET') {
             'user_id' => (int)$row['user_id'],
             'username' => $username,
             'avatar' => $avatar,
+            'room_type' => $row['room_type'] ?? null,
             'rating' => (int)$row['rating'],
             'review_text' => $row['review_text'],
             'created_at' => $row['created_at']
@@ -132,6 +149,7 @@ if ($method === 'POST') {
     
     $rating = isset($input['rating']) ? (int)$input['rating'] : 0;
     $reviewText = isset($input['review_text']) ? trim($input['review_text']) : '';
+    $roomType = isset($input['room_type']) ? trim($input['room_type']) : '';
     $userEmail = $_SESSION['usermail'];
     
     // Validation
@@ -185,10 +203,12 @@ if ($method === 'POST') {
     // Escape data
     $rating = mysqli_real_escape_string($conn, $rating);
     $reviewText = mysqli_real_escape_string($conn, $reviewText);
+    $roomType = mysqli_real_escape_string($conn, $roomType);
     
     // Insert review
-    $sql = "INSERT INTO reviews (user_id, user_email, username, avatar, rating, review_text, status) 
-            VALUES ($userId, '$userEmail', '$username', '$avatar', $rating, '$reviewText', 'approved')";
+    $roomTypeValue = !empty($roomType) ? "'$roomType'" : "NULL";
+    $sql = "INSERT INTO reviews (user_id, user_email, username, avatar, room_type, rating, review_text, status) 
+            VALUES ($userId, '$userEmail', '$username', '$avatar', $roomTypeValue, $rating, '$reviewText', 'approved')";
     
     if (mysqli_query($conn, $sql)) {
         $reviewId = mysqli_insert_id($conn);

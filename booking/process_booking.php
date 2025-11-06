@@ -38,14 +38,14 @@ if($isLoggedIn) {
 $Name = mysqli_real_escape_string($conn, trim($_POST['Name']));
 $Email = mysqli_real_escape_string($conn, trim($_POST['Email']));
 $Country = mysqli_real_escape_string($conn, trim($_POST['Country']));
-$Phone = mysqli_real_escape_string($conn, trim($_POST['Phone']));
+$Phone = ''; // Phone is no longer required, set to empty string
 $RoomType = mysqli_real_escape_string($conn, $_POST['RoomType']);
 $Service = mysqli_real_escape_string($conn, $_POST['Service']);
 $cin = $_POST['cin'];
 $cout = $_POST['cout'];
 
 // Validation
-if($Name == "" || $Email == "" || $Country == "" || $Phone == ""){
+if($Name == "" || $Email == "" || $Country == ""){
     $_SESSION['error_message'] = 'Thiếu thông tin cá nhân. Vui lòng điền đầy đủ thông tin khách hàng.';
     header("Location: ../index.php");
     exit;

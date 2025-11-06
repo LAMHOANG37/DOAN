@@ -17,9 +17,14 @@ $isFromAdmin = strpos($referer, 'admin/admin.php') !== false;
 $isSubmittingForm = isset($_POST['guestdetailsubmit']);
 $isFromBooking = strpos($referer, 'booking/') !== false;
 $isFromPayment = strpos($referer, 'payment/') !== false;
+$isFromUser = strpos($referer, 'user/') !== false;
 
-// KHÔNG clear session nếu có error_message (để hiển thị lỗi) hoặc đang redirect từ booking/payment
-if (!$isFromLogin && !$isFromAdmin && !$isSubmittingForm && empty($error_message) && !$isFromBooking && !$isFromPayment) {
+// KHÔNG clear session nếu:
+// 1. Có error_message (để hiển thị lỗi)
+// 2. Đang submit form
+// 3. Redirect từ login/admin/booking/payment/user
+// 4. Đã có usermail trong session (người dùng đã đăng nhập) - QUAN TRỌNG: Bảo vệ session khi đã đăng nhập
+if (!$isFromLogin && !$isFromAdmin && !$isSubmittingForm && empty($error_message) && !$isFromBooking && !$isFromPayment && !$isFromUser && empty($saved_usermail)) {
     if (session_status() === PHP_SESSION_ACTIVE) {
         session_unset();
         if (isset($_COOKIE[session_name()])) {
@@ -27,10 +32,11 @@ if (!$isFromLogin && !$isFromAdmin && !$isSubmittingForm && empty($error_message
         }
         session_destroy();
         session_start();
-        // Khôi phục usermail nếu cần
-        if (!empty($saved_usermail)) {
-            $_SESSION['usermail'] = $saved_usermail;
-        }
+    }
+} else if (!empty($saved_usermail)) {
+    // Đảm bảo usermail được giữ lại nếu đã đăng nhập
+    if (!isset($_SESSION['usermail'])) {
+        $_SESSION['usermail'] = $saved_usermail;
     }
 }
 
@@ -42,6 +48,7 @@ $isLoggedIn = !empty($usermail);
 $username = 'Khách';
 $avatar = 'default-avatar.png';
 $user_address = '';
+$user_country = 'Vietnam'; // Default country
 
 $user_id = null;
 if($isLoggedIn) {
@@ -53,6 +60,8 @@ if($isLoggedIn) {
         $username = $user_data['Username'] ?? 'Khách';
         $avatar = $user_data['avatar'] ?? 'default-avatar.png';
         $user_address = $user_data['address'] ?? '';
+        // Default to Vietnam if no country stored
+        $user_country = 'Vietnam';
     }
 }
 
@@ -144,7 +153,7 @@ if($isLoggedIn) {
         visibility: hidden;
         transform: translateY(-10px) scale(0.95);
         transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        z-index: 1000;
+        z-index: 20003;
         overflow: hidden;
         border: 1px solid rgba(0, 0, 0, 0.05);
       }
@@ -377,10 +386,10 @@ if($isLoggedIn) {
                     <h4>Thông Tin Khách Hàng</h4>
                     
                     <!-- Tên -->
-                    <input type="text" name="Name" placeholder="Nhập họ tên *" value="" autocomplete="off" required>
+                    <input type="text" name="Name" placeholder="Nhập họ tên *" value="<?php echo $isLoggedIn ? htmlspecialchars($username) : ''; ?>" autocomplete="off" required <?php echo $isLoggedIn ? 'readonly' : ''; ?>>
                     
                     <!-- Email -->
-                    <input type="email" name="Email" placeholder="Nhập email *" value="" autocomplete="off" required>
+                    <input type="email" name="Email" placeholder="Nhập email *" value="<?php echo $isLoggedIn ? htmlspecialchars($usermail) : ''; ?>" autocomplete="off" required <?php echo $isLoggedIn ? 'readonly' : ''; ?>>
 
                     <?php
                     $countries = array("Afghanistan", "Albania", "Algeria", "American Samoa", "Andorra", "Angola", "Anguilla", "Antarctica", "Antigua and Barbuda", "Argentina", "Armenia", "Aruba", "Australia", "Austria", "Azerbaijan", "Bahamas", "Bahrain", "Bangladesh", "Barbados", "Belarus", "Belgium", "Belize", "Benin", "Bermuda", "Bhutan", "Bolivia", "Bosnia and Herzegowina", "Botswana", "Bouvet Island", "Brazil", "British Indian Ocean Territory", "Brunei Darussalam", "Bulgaria", "Burkina Faso", "Burundi", "Cambodia", "Cameroon", "Canada", "Cape Verde", "Cayman Islands", "Central African Republic", "Chad", "Chile", "China", "Christmas Island", "Cocos (Keeling) Islands", "Colombia", "Comoros", "Congo", "Congo, the Democratic Republic of the", "Cook Islands", "Costa Rica", "Cote d'Ivoire", "Croatia (Hrvatska)", "Cuba", "Cyprus", "Czech Republic", "Denmark", "Djibouti", "Dominica", "Dominican Republic", "East Timor", "Ecuador", "Egypt", "El Salvador", "Equatorial Guinea", "Eritrea", "Estonia", "Ethiopia", "Falkland Islands (Malvinas)", "Faroe Islands", "Fiji", "Finland", "France", "France Metropolitan", "French Guiana", "French Polynesia", "French Southern Territories", "Gabon", "Gambia", "Georgia", "Germany", "Ghana", "Gibraltar", "Greece", "Greenland", "Grenada", "Guadeloupe", "Guam", "Guatemala", "Guinea", "Guinea-Bissau", "Guyana", "Haiti", "Heard and Mc Donald Islands", "Holy See (Vatican City State)", "Honduras", "Hong Kong", "Hungary", "Iceland", "India", "Indonesia", "Iran (Islamic Republic of)", "Iraq", "Ireland", "Israel", "Italy", "Jamaica", "Japan", "Jordan", "Kazakhstan", "Kenya", "Kiribati", "Korea, Democratic People's Republic of", "Korea, Republic of", "Kuwait", "Kyrgyzstan", "Lao, People's Democratic Republic", "Latvia", "Lebanon", "Lesotho", "Liberia", "Libyan Arab Jamahiriya", "Liechtenstein", "Lithuania", "Luxembourg", "Macau", "Macedonia, The Former Yugoslav Republic of", "Madagascar", "Malawi", "Malaysia", "Maldives", "Mali", "Malta", "Marshall Islands", "Martinique", "Mauritania", "Mauritius", "Mayotte", "Mexico", "Micronesia, Federated States of", "Moldova, Republic of", "Monaco", "Mongolia", "Montserrat", "Morocco", "Mozambique", "Myanmar", "Namibia", "Nauru", "Nepal", "Netherlands", "Netherlands Antilles", "New Caledonia", "New Zealand", "Nicaragua", "Niger", "Nigeria", "Niue", "Norfolk Island", "Northern Mariana Islands", "Norway", "Oman", "Pakistan", "Palau", "Panama", "Papua New Guinea", "Paraguay", "Peru", "Philippines", "Pitcairn", "Poland", "Portugal", "Puerto Rico", "Qatar", "Reunion", "Romania", "Russian Federation", "Rwanda", "Saint Kitts and Nevis", "Saint Lucia", "Saint Vincent and the Grenadines", "Samoa", "San Marino", "Sao Tome and Principe", "Saudi Arabia", "Senegal", "Seychelles", "Sierra Leone", "Singapore", "Slovakia (Slovak Republic)", "Slovenia", "Solomon Islands", "Somalia", "South Africa", "South Georgia and the South Sandwich Islands", "Spain", "Sri Lanka", "St. Helena", "St. Pierre and Miquelon", "Sudan", "Suriname", "Svalbard and Jan Mayen Islands", "Swaziland", "Sweden", "Switzerland", "Syrian Arab Republic", "Taiwan, Province of China", "Tajikistan", "Tanzania, United Republic of", "Thailand", "Togo", "Tokelau", "Tonga", "Trinidad and Tobago", "Tunisia", "Turkey", "Turkmenistan", "Turks and Caicos Islands", "Tuvalu", "Uganda", "Ukraine", "United Arab Emirates", "United Kingdom", "United States", "United States Minor Outlying Islands", "Uruguay", "Uzbekistan", "Vanuatu", "Venezuela", "Vietnam", "Virgin Islands (British)", "Virgin Islands (U.S.)", "Wallis and Futuna Islands", "Western Sahara", "Yemen", "Yugoslavia", "Zambia", "Zimbabwe");
@@ -391,7 +400,7 @@ if($isLoggedIn) {
 						<option value="">Chọn quốc gia *</option>
                         <?php
 							foreach($countries as $key => $value):
-							    $selected = ($value == "Vietnam") ? "selected" : "";
+							    $selected = ($isLoggedIn && $value == $user_country) ? "selected" : (!$isLoggedIn && $value == "Vietnam" ? "selected" : "");
 							    echo '<option value="'.$value.'" '.$selected.'>'.$value.'</option>';
 							endforeach;
 						?>
@@ -506,7 +515,7 @@ if($isLoggedIn) {
                 <i class="fa-solid fa-person-swimming"></i>
               </div>
             </div>
-            <button class="btn btn-primary bookbtn" onclick="openbookbox('Phòng Cao Cấp')">Đặt Phòng</button>
+            <a href="booking/room-details.php?type=Phòng Cao Cấp" class="btn btn-primary bookbtn">Đặt Phòng</a>
           </div>
         </div>
         <div class="roombox">
@@ -521,7 +530,7 @@ if($isLoggedIn) {
                 <i class="fa-solid fa-dumbbell"></i>
               </div>
             </div>
-            <button class="btn btn-primary bookbtn" onclick="openbookbox('Phòng Sang Trọng')">Đặt Phòng</button>
+            <a href="booking/room-details.php?type=Phòng Sang Trọng" class="btn btn-primary bookbtn">Đặt Phòng</a>
           </div>
         </div>
         <div class="roombox">
@@ -535,7 +544,7 @@ if($isLoggedIn) {
                 <i class="fa-solid fa-spa"></i>
               </div>
             </div>
-            <button class="btn btn-primary bookbtn" onclick="openbookbox('Nhà Khách')">Đặt Phòng</button>
+            <a href="booking/room-details.php?type=Nhà Khách" class="btn btn-primary bookbtn">Đặt Phòng</a>
           </div>
         </div>
         <div class="roombox">
@@ -548,7 +557,7 @@ if($isLoggedIn) {
                 <i class="fa-solid fa-burger"></i>
               </div>
             </div>
-            <button class="btn btn-primary bookbtn" onclick="openbookbox('Phòng Đơn')">Đặt Phòng</button>
+            <a href="booking/room-details.php?type=Phòng Đơn" class="btn btn-primary bookbtn">Đặt Phòng</a>
           </div>
         </div>
       </div>
@@ -836,16 +845,19 @@ if($isLoggedIn) {
       // If logged in, open booking form
       bookbox.classList.add("show");
       
-      // Clear Name and Email fields to prevent auto-fill
-      const nameInput = bookbox.querySelector('input[name="Name"]');
-      const emailInput = bookbox.querySelector('input[name="Email"]');
-      if (nameInput) {
-        nameInput.value = '';
-        nameInput.setAttribute('autocomplete', 'off');
-      }
-      if (emailInput) {
-        emailInput.value = '';
-        emailInput.setAttribute('autocomplete', 'off');
+      // Don't clear fields if user is logged in (they are already filled)
+      // Only clear if user is not logged in
+      if (!isLoggedIn) {
+        const nameInput = bookbox.querySelector('input[name="Name"]');
+        const emailInput = bookbox.querySelector('input[name="Email"]');
+        if (nameInput) {
+          nameInput.value = '';
+          nameInput.setAttribute('autocomplete', 'off');
+        }
+        if (emailInput) {
+          emailInput.value = '';
+          emailInput.setAttribute('autocomplete', 'off');
+        }
       }
       
       // Set room type if provided
@@ -914,38 +926,69 @@ if($isLoggedIn) {
         
         // Check if room type is selected
         if (!roomType) {
-            roomSelect.innerHTML = '<option value="">-- Chọn phòng --</option>';
+            roomSelect.innerHTML = '<option value="">-- Chọn loại phòng trước --</option>';
+            roomSelect.disabled = true;
+            return;
+        }
+        
+        // Kiểm tra nếu chưa chọn ngày thì yêu cầu chọn ngày
+        const checkIn = checkinDate ? checkinDate.value : '';
+        const checkOut = checkoutDate ? checkoutDate.value : '';
+        
+        if (!checkIn || !checkOut) {
+            roomSelect.innerHTML = '<option value="">Vui lòng chọn ngày để xem phòng trống</option>';
+            roomSelect.disabled = true;
+            return;
+        }
+        
+        // Validate dates
+        if (new Date(checkOut) <= new Date(checkIn)) {
+            roomSelect.innerHTML = '<option value="">Ngày trả phòng phải sau ngày nhận phòng</option>';
+            roomSelect.disabled = true;
             return;
         }
         
         // Show loading
         roomSelect.innerHTML = '<option value="">Đang tải...</option>';
+        roomSelect.disabled = true;
         
-        // Lấy ngày check-in và check-out nếu có
-        const checkIn = checkinDate ? checkinDate.value : '';
-        const checkOut = checkoutDate ? checkoutDate.value : '';
+        // Build query string - use absolute path from root
+        let queryString = `./admin/get_available_rooms.php?roomType=${encodeURIComponent(roomType)}&checkIn=${encodeURIComponent(checkIn)}&checkOut=${encodeURIComponent(checkOut)}`;
         
-        // Build query string
-        let queryString = `admin/get_available_rooms.php?roomType=${encodeURIComponent(roomType)}`;
-        if (checkIn) {
-            queryString += `&checkIn=${encodeURIComponent(checkIn)}`;
-        }
-        if (checkOut) {
-            queryString += `&checkOut=${encodeURIComponent(checkOut)}`;
-        }
+        console.log('Loading rooms with query:', queryString);
         
         // Fetch all rooms (including booked ones)
         fetch(queryString)
-            .then(response => response.json())
+            .then(response => {
+                console.log('Response status:', response.status);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.text().then(text => {
+                    console.log('Response text:', text);
+                    try {
+                        return JSON.parse(text);
+                    } catch (e) {
+                        console.error('JSON parse error:', e, 'Text:', text);
+                        throw new Error('Invalid JSON response');
+                    }
+                });
+            })
             .then(data => {
                 roomSelect.innerHTML = '';
                 
-                if (!data.success || data.rooms.length === 0) {
-                    let errorMsg = 'Không có phòng';
-                    if (data.message) {
+                if (!data || !data.success) {
+                    let errorMsg = 'Không thể tải danh sách phòng';
+                    if (data && data.message) {
                         errorMsg = data.message;
                     }
                     roomSelect.innerHTML = `<option value="">${errorMsg}</option>`;
+                    roomSelect.disabled = true;
+                    return;
+                }
+                
+                if (!data.rooms || data.rooms.length === 0) {
+                    roomSelect.innerHTML = '<option value="">Không có phòng nào</option>';
                     roomSelect.disabled = true;
                     return;
                 }
@@ -983,8 +1026,8 @@ if($isLoggedIn) {
                 });
             })
             .catch(error => {
-                console.error('Error:', error);
-                roomSelect.innerHTML = '<option value="">Lỗi khi tải danh sách phòng</option>';
+                console.error('Error loading rooms:', error);
+                roomSelect.innerHTML = '<option value="">Lỗi tải danh sách phòng. Vui lòng thử lại.</option>';
                 roomSelect.disabled = true;
             });
     }

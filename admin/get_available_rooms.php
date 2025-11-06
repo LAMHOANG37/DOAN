@@ -5,9 +5,14 @@
  * Returns: JSON array of all rooms with availability status
  */
 
+// Enable error reporting for debugging (remove in production)
+error_reporting(E_ALL);
+ini_set('display_errors', 0);
+
 include '../config.php';
 
-header('Content-Type: application/json');
+header('Content-Type: application/json; charset=utf-8');
+header('Access-Control-Allow-Origin: *');
 
 // Get parameters
 $roomType = $_GET['roomType'] ?? '';
@@ -20,7 +25,17 @@ if (empty($roomType)) {
         'success' => false,
         'message' => 'Thiếu thông tin: roomType',
         'rooms' => []
-    ]);
+    ], JSON_UNESCAPED_UNICODE);
+    exit;
+}
+
+// Check database connection
+if (!isset($conn) || !$conn) {
+    echo json_encode([
+        'success' => false,
+        'message' => 'Lỗi kết nối database',
+        'rooms' => []
+    ], JSON_UNESCAPED_UNICODE);
     exit;
 }
 
@@ -35,7 +50,7 @@ if (!$result) {
         'success' => false,
         'message' => 'Lỗi truy vấn database: ' . mysqli_error($conn),
         'rooms' => []
-    ]);
+    ], JSON_UNESCAPED_UNICODE);
     exit;
 }
 
@@ -91,8 +106,9 @@ while ($row = mysqli_fetch_assoc($result)) {
 echo json_encode([
     'success' => true,
     'message' => 'OK',
-    'rooms' => $rooms
-]);
+    'rooms' => $rooms,
+    'count' => count($rooms)
+], JSON_UNESCAPED_UNICODE);
 ?>
 
 
