@@ -122,6 +122,22 @@
 <!-- Include Chatbot CSS -->
 <link rel="stylesheet" href="./chatbot/chatbot.css">
 
+<!-- Pass login status to JavaScript -->
+<script>
+    // Check if user just logged in
+    window.chatbotConfig = {
+        isLoggedIn: <?php echo isset($_SESSION['usermail']) && !empty($_SESSION['usermail']) ? 'true' : 'false'; ?>,
+        justLoggedIn: <?php 
+            $justLoggedIn = isset($_SESSION['just_logged_in']) && $_SESSION['just_logged_in'] === true;
+            // Clear flag after reading
+            if ($justLoggedIn) {
+                unset($_SESSION['just_logged_in']);
+            }
+            echo $justLoggedIn ? 'true' : 'false';
+        ?>
+    };
+</script>
+
 <!-- Include Chatbot JS -->
 <script src="./chatbot/chatbot.js"></script>
 

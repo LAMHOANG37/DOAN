@@ -22,6 +22,17 @@ document.addEventListener('DOMContentLoaded', function() {
             scrollToBottom();
         });
     }
+    
+    // Auto-open chatbot if user just logged in
+    const config = window.chatbotConfig || {};
+    if (config.isLoggedIn && config.justLoggedIn) {
+        // Wait a bit for page to fully load, then open chatbot
+        setTimeout(function() {
+            toggleChatbot();
+            // Scroll to bottom to show welcome message
+            setTimeout(scrollToBottom, 300);
+        }, 1000); // Wait 1 second after page load
+    }
 });
 
 // ==================== CHAT CONTROLS ====================

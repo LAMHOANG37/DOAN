@@ -26,6 +26,8 @@ if (isset($_POST['user_login_submit'])) {
     if ($result->num_rows > 0) {
         // Lưu email vào session
         $_SESSION['usermail'] = $email;
+        // Set flag để chatbot tự động mở
+        $_SESSION['just_logged_in'] = true;
         header("Location: index.php");
         exit();
     } else {

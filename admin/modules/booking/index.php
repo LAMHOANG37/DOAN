@@ -293,7 +293,21 @@ include '../../../config.php';
 
     <div class="roombooktable" class="table-responsive-xl">
         <?php
-            $roombooktablesql = "SELECT * FROM roombook";
+            // JOIN với payment_transactions để lấy trạng thái thanh toán (lấy transaction mới nhất nếu có nhiều)
+            $roombooktablesql = "SELECT rb.*, 
+                                        pt.status as payment_status,
+                                        pt.gateway as payment_gateway
+                                 FROM roombook rb 
+                                 LEFT JOIN (
+                                     SELECT pt1.booking_id, pt1.status, pt1.gateway
+                                     FROM payment_transactions pt1
+                                     WHERE pt1.id = (
+                                         SELECT MAX(pt2.id)
+                                         FROM payment_transactions pt2
+                                         WHERE pt2.booking_id = pt1.booking_id
+                                     )
+                                 ) pt ON rb.id = pt.booking_id 
+                                 ORDER BY rb.id DESC";
             $roombookresult = mysqli_query($conn, $roombooktablesql);
             $nums = mysqli_num_rows($roombookresult);
         ?>
@@ -344,11 +358,18 @@ include '../../../config.php';
                     <td><?php echo $res['cout'] ?></td>
                     <td>
                         <?php 
-                        $status = $res['stat'];
-                        if($status == "Confirm") {
-                            echo '<span class="badge-status badge-confirm"><i class="fa-solid fa-check-circle"></i> Đã Xác Nhận</span>';
+                        // Lấy trạng thái thanh toán từ payment_transactions
+                        $payment_status = $res['payment_status'] ?? 'pending';
+                        
+                        if($payment_status == 'completed' || $payment_status == 'success') {
+                            // Đã thanh toán
+                            echo '<span class="badge-status badge-confirm"><i class="fa-solid fa-check-circle"></i> Đã Thanh Toán</span>';
+                        } elseif($payment_status == 'failed' || $payment_status == 'cancelled') {
+                            // Thanh toán thất bại
+                            echo '<span class="badge-status badge-failed"><i class="fa-solid fa-times-circle"></i> Thanh Toán Thất Bại</span>';
                         } else {
-                            echo '<span class="badge-status badge-pending"><i class="fa-solid fa-clock"></i> Chờ Xác Nhận</span>';
+                            // Chưa thanh toán (pending hoặc null)
+                            echo '<span class="badge-status badge-pending"><i class="fa-solid fa-clock"></i> Chưa Thanh Toán</span>';
                         }
                         ?>
                     </td>

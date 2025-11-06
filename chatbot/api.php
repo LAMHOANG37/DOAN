@@ -195,14 +195,37 @@ function callGeminiAPI($userMessage, $sessionId) {
     }
     
     if ($httpCode !== 200) {
-        throw new Exception("API Error (HTTP $httpCode): $response");
+        // Parse error response for better error message
+        $errorData = json_decode($response, true);
+        $errorMsg = "API Error (HTTP $httpCode)";
+        
+        if (isset($errorData['error'])) {
+            $apiError = $errorData['error'];
+            $errorMsg .= ": " . ($apiError['message'] ?? $apiError['code'] ?? 'Unknown error');
+            
+            // Special handling for permission errors
+            if (isset($apiError['code']) && $apiError['code'] == 403) {
+                $errorMsg .= "\n\n⚠️ Lỗi Permission - Có thể do:\n";
+                $errorMsg .= "1. API key không có quyền truy cập model này\n";
+                $errorMsg .= "2. Generative Language API chưa được enable trong Google Cloud Console\n";
+                $errorMsg .= "3. API key bị restricted hoặc hết hạn\n";
+                $errorMsg .= "\nVui lòng kiểm tra:\n";
+                $errorMsg .= "- Enable 'Generative Language API' trong Google Cloud Console\n";
+                $errorMsg .= "- Kiểm tra API key có quyền truy cập\n";
+                $errorMsg .= "- Thử model khác: gemini-1.5-flash, gemini-1.5-pro";
+            }
+        } else {
+            $errorMsg .= ": $response";
+        }
+        
+        throw new Exception($errorMsg);
     }
     
     // Parse response
     $result = json_decode($response, true);
     
     if (!isset($result['candidates'][0]['content']['parts'][0]['text'])) {
-        throw new Exception("Invalid API response format");
+        throw new Exception("Invalid API response format: " . json_encode($result));
     }
     
     return trim($result['candidates'][0]['content']['parts'][0]['text']);
