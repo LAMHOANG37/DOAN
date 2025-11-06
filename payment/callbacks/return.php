@@ -93,18 +93,41 @@ switch($gateway) {
         break;
         
     case 'zalopay':
-        // ZaloPay return
+        // ZaloPay redirect
+        // ZaloPay sẽ redirect về với các tham số: status, apptransid
         $status = $_GET['status'] ?? '';
+        $apptransid = $_GET['apptransid'] ?? '';
+        $booking_id = $_GET['booking_id'] ?? '';
         
-        if($status == '1') {
+        if($status == '1' && $apptransid) {
+            // Thanh toán thành công
             $success = true;
             $message = "Thanh toán ZaloPay thành công!";
             
-            $update_sql = "UPDATE payment_transactions SET status='completed', updated_at=NOW() 
-                          WHERE booking_id='$booking_id' AND gateway='zalopay'";
+            // Update transaction
+            $update_sql = "UPDATE payment_transactions 
+                          SET status='completed', 
+                              updated_at=NOW() 
+                          WHERE transaction_id='$apptransid' AND gateway='zalopay'";
             mysqli_query($conn, $update_sql);
+            
+            // Update booking status
+            if($booking_id) {
+                $update_booking = "UPDATE roombook SET stat='Confirm' WHERE id='$booking_id'";
+                @mysqli_query($conn, $update_booking);
+            }
         } else {
-            $message = "Thanh toán ZaloPay thất bại!";
+            // Thanh toán thất bại hoặc hủy
+            $success = false;
+            $message = "Thanh toán ZaloPay thất bại hoặc đã bị hủy!";
+            
+            if($apptransid) {
+                $update_sql = "UPDATE payment_transactions 
+                              SET status='failed', 
+                                  updated_at=NOW() 
+                              WHERE transaction_id='$apptransid' AND gateway='zalopay'";
+                mysqli_query($conn, $update_sql);
+            }
         }
         break;
         

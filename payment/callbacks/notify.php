@@ -126,30 +126,74 @@ switch($gateway) {
         break;
         
     case 'zalopay':
-        // ZaloPay callback
-        $result = json_decode(file_get_contents('php://input'), true);
+        // ZaloPay callback (IPN)
+        $input = file_get_contents('php://input');
+        $result = json_decode($input, true);
         
+        if(!$result) {
+            header('Content-Type: application/json');
+            echo json_encode(["return_code" => -1, "return_message" => "Invalid JSON"]);
+            exit;
+        }
+        
+        // Verify MAC using key2
         $key2 = ZALOPAY_KEY2;
-        $dataStr = $result["data"];
-        $reqMac = $result["mac"];
+        $dataStr = $result["data"] ?? '';
+        $reqMac = $result["mac"] ?? '';
+        
+        if(empty($dataStr) || empty($reqMac)) {
+            header('Content-Type: application/json');
+            echo json_encode(["return_code" => -1, "return_message" => "Missing data or mac"]);
+            exit;
+        }
         
         $mac = hash_hmac("sha256", $dataStr, $key2);
         
-        if (strcmp($mac, $reqMac) == 0) {
-            $dataJson = json_decode($dataStr, true);
-            
-            if($dataJson['return_code'] == 1) {
-                $appTransId = $dataJson['app_trans_id'];
-                $update_sql = "UPDATE payment_transactions SET status='completed', updated_at=NOW() 
-                              WHERE transaction_id='$appTransId'";
-                mysqli_query($conn, $update_sql);
-                
-                header('Content-Type: application/json');
-                echo json_encode(["return_code" => 1, "return_message" => "success"]);
-            }
-        } else {
+        if (strcmp($mac, $reqMac) !== 0) {
+            // MAC không khớp
             header('Content-Type: application/json');
             echo json_encode(["return_code" => -1, "return_message" => "mac not equal"]);
+            exit;
+        }
+        
+        // MAC hợp lệ - parse data
+        $dataJson = json_decode($dataStr, true);
+        
+        if($dataJson && $dataJson['return_code'] == 1) {
+            // Thanh toán thành công
+            $appTransId = $dataJson['app_trans_id'];
+            $zpTransId = $dataJson['zp_trans_id'] ?? '';
+            $amount = $dataJson['amount'] ?? 0;
+            $booking_id = $_GET['booking_id'] ?? '';
+            
+            // Update transaction
+            $update_sql = "UPDATE payment_transactions 
+                          SET status='completed', 
+                              updated_at=NOW() 
+                          WHERE transaction_id='$appTransId' AND gateway='zalopay'";
+            mysqli_query($conn, $update_sql);
+            
+            // Update booking status if needed
+            if($booking_id) {
+                $update_booking = "UPDATE roombook SET stat='Confirm' WHERE id='$booking_id'";
+                @mysqli_query($conn, $update_booking);
+            }
+            
+            header('Content-Type: application/json');
+            echo json_encode(["return_code" => 1, "return_message" => "success"]);
+        } else {
+            // Thanh toán thất bại
+            $appTransId = $dataJson['app_trans_id'] ?? '';
+            if($appTransId) {
+                $update_sql = "UPDATE payment_transactions 
+                              SET status='failed', 
+                                  updated_at=NOW() 
+                              WHERE transaction_id='$appTransId' AND gateway='zalopay'";
+                mysqli_query($conn, $update_sql);
+            }
+            
+            header('Content-Type: application/json');
+            echo json_encode(["return_code" => 1, "return_message" => "success"]);
         }
         break;
 }
